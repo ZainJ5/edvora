@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import connectDB from '../../../lib/moongose';
 import User from '../../../models/user';
+import Teacher from '../../../models/teacher';
 
 export async function POST(request) {
   try {
@@ -33,6 +34,18 @@ export async function POST(request) {
         { error: 'Invalid credentials' },
         { status: 401 }
       );
+    }
+
+    if (user.role === 'instructor') {
+      const teacherProfile = await Teacher.findOne({ userId: user._id });
+      
+      if (!teacherProfile) {
+        const newTeacherProfile = new Teacher({
+          userId: user._id,
+          profileCompleted: false
+        });
+        await newTeacherProfile.save();
+      }
     }
 
     const token = jwt.sign(
