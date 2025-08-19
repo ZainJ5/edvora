@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import TeacherProfileForm from '@/app/components/TeacherProfileForm';
+import TeacherProfileForm from '@/app/components/InstructorProfileForm';
 import { useRouter } from 'next/navigation';
 
 export default function InstructorDashboard() {
@@ -17,7 +17,7 @@ export default function InstructorDashboard() {
       if (!currentUser) return;
       
       try {
-        const response = await fetch('/api/teacher/profile', {
+        const response = await fetch('/api/instructor/profile', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -28,7 +28,7 @@ export default function InstructorDashboard() {
           const data = await response.json();
           setTeacherData(data.teacher);
           
-          if (data.teacher && !data.teacher.profileCompleted) {
+          if (!data.teacher || !data.teacher.profileCompleted) {
             setShowProfileForm(true);
           }
         } else if (response.status === 404) {
@@ -49,10 +49,12 @@ export default function InstructorDashboard() {
   }, [currentUser, loading, router]);
 
   const handleProfileComplete = () => {
+    // Immediately hide the form
     setShowProfileForm(false);
+    
     const fetchTeacherProfile = async () => {
       try {
-        const response = await fetch('/api/teacher/profile', {
+        const response = await fetch('/api/instructor/profile', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -62,6 +64,9 @@ export default function InstructorDashboard() {
         if (response.ok) {
           const data = await response.json();
           setTeacherData(data.teacher);
+          if (data.teacher && !data.teacher.profileCompleted) {
+            console.warn('Profile marked as incomplete despite submission');
+          }
         }
       } catch (error) {
         console.error('Error fetching updated teacher profile:', error);
@@ -99,11 +104,17 @@ export default function InstructorDashboard() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
           <div className="space-y-2">
-            <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              Create New Course
+            <button 
+              onClick={() => router.push('/instructor/courses')}
+              className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Manage Courses
             </button>
-            <button className="w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700">
-              View Analytics
+            <button 
+              onClick={() => router.push('/instructor/courses')}
+              className="w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Create New Course
             </button>
             <button className="w-full py-2 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700">
               Manage Students
