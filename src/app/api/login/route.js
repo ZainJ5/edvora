@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import connectDB from '../../../lib/moongose';
 import User from '../../../models/user';
-import Teacher from '../../../models/teacher';
+import Teacher from '../../../models/instructor';
 
 export async function POST(request) {
   try {

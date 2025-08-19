@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import connectDB from '@/lib/moongose';
-import Teacher from '@/models/teacher';
+import Teacher from '@/models/instructor';
 import User from '@/models/user';
 
 const verifyToken = (request) => {
@@ -18,7 +18,7 @@ const verifyToken = (request) => {
   }
 };
 
-export async function POST(request) {
+export async function GET(request) {
   try {
     await connectDB();
 
@@ -32,40 +32,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { bio, expertise } = body;
-
-    if (!bio || !expertise || expertise.length === 0) {
-      return NextResponse.json(
-        { error: 'Bio and at least one area of expertise are required' },
-        { status: 400 }
-      );
+    const teacher = await Teacher.findOne({ userId: decoded.userId });
+    if (!teacher) {
+      return NextResponse.json({ error: 'Teacher profile not found' }, { status: 404 });
     }
 
-    let teacher = await Teacher.findOne({ userId: decoded.userId });
-
-    if (teacher) {
-      teacher.bio = bio;
-      teacher.expertise = expertise;
-      teacher.profileCompleted = true;
-      await teacher.save();
-    } else {
-      teacher = new Teacher({
-        userId: decoded.userId,
-        bio,
-        expertise,
-        profileCompleted: true
-      });
-      await teacher.save();
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Teacher profile completed successfully',
-      teacher
-    });
+    return NextResponse.json({ success: true, teacher });
   } catch (error) {
-    console.error('Error completing teacher profile:', error);
+    console.error('Error getting teacher profile:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

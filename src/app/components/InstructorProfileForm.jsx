@@ -52,7 +52,6 @@ const TeacherProfileForm = ({ onComplete, onCancel }) => {
     setLoading(true);
     setError(null);
 
-    // Filter out empty expertise values
     const filteredExpertise = formData.expertise.filter(item => item.trim() !== '');
     
     if (filteredExpertise.length === 0) {
@@ -62,7 +61,7 @@ const TeacherProfileForm = ({ onComplete, onCancel }) => {
     }
 
     try {
-      const response = await fetch('/api/teacher/complete-profile', {
+      const response = await fetch('/api/instructor/complete-profile', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
