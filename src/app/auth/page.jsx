@@ -26,8 +26,8 @@ const AuthPage = () => {
       router.push('/instructor/dashboard');
     } else if (role === 'admin') {
       router.push('/admin');
-    } else {
-      router.push('/');
+    } else if(role === 'user'){
+      router.push('/user/dashboard');
     }
   };
 

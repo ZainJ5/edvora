@@ -49,7 +49,6 @@ export default function InstructorDashboard() {
   }, [currentUser, loading, router]);
 
   const handleProfileComplete = () => {
-    // Immediately hide the form
     setShowProfileForm(false);
     
     const fetchTeacherProfile = async () => {
@@ -81,7 +80,7 @@ export default function InstructorDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto text-black px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Instructor Dashboard</h1>
       
       {teacherData && (
