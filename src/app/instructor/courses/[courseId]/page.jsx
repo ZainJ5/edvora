@@ -56,13 +56,12 @@ export default function CourseContent() {
 
   const handleAddLecture = async (lectureData) => {
     try {
-      // Remove the Content-Type header as it will be set automatically for FormData
       const response = await fetch(`/api/instructor/courses/${courseId}/lectures`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: lectureData, // lectureData is already FormData from the LectureForm
+        body: lectureData, 
       });
 
       if (response.ok) {
@@ -84,13 +83,12 @@ export default function CourseContent() {
 
   const handleUpdateLecture = async (lectureData) => {
     try {
-      // Remove the Content-Type header as it will be set automatically for FormData
       const response = await fetch(`/api/instructor/courses/${courseId}/lectures/${editingLectureIndex}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: lectureData, // lectureData is already FormData from the LectureForm
+        body: lectureData, 
       });
 
       if (response.ok) {
@@ -221,7 +219,7 @@ export default function CourseContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 text-black py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">{course.title}</h1>
