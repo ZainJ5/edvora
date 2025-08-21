@@ -6,11 +6,12 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
   const [lectureData, setLectureData] = useState(initialData || {
     title: '',
     videoUrl: '',
-    transcript: '',
+    thumbnail: '',
     resources: []
   });
   
   const [videoFile, setVideoFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
   const [resourceData, setResourceData] = useState({
     title: '',
     fileType: 'pdf'
@@ -30,6 +31,19 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
   const handleVideoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setVideoFile(e.target.files[0]);
+    }
+  };
+
+  const handleThumbnailChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setThumbnailFile(e.target.files[0]);
+      
+      // Create a preview URL for the thumbnail
+      const previewUrl = URL.createObjectURL(e.target.files[0]);
+      setLectureData({
+        ...lectureData,
+        thumbnailPreview: previewUrl
+      });
     }
   };
 
@@ -118,7 +132,6 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
     
     const formData = new FormData();
     formData.append('title', lectureData.title);
-    formData.append('transcript', lectureData.transcript || '');
     
     if (videoFile) {
       formData.append('videoFile', videoFile);
@@ -126,10 +139,17 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
       formData.append('videoUrl', lectureData.videoUrl);
     }
     
+    if (thumbnailFile) {
+      formData.append('thumbnailFile', thumbnailFile);
+    } else if (lectureData.thumbnail) {
+      formData.append('thumbnail', lectureData.thumbnail);
+    }
+    
     lectureData.resources.forEach((resource, index) => {
       if (resource.file) {
         formData.append('resourceFiles', resource.file);
         formData.append(`resourceTitle_${index}`, resource.title);
+        formData.append(`resourceType_${index}`, resource.fileType);
       }
     });
     
@@ -189,17 +209,39 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
           </div>
           
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="transcript">
-              Transcript
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="thumbnailFile">
+              Lecture Thumbnail
             </label>
-            <textarea
-              id="transcript"
-              name="transcript"
-              value={lectureData.transcript}
-              onChange={handleChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32"
-              placeholder="Add a transcript for the lecture video"
+            <input
+              type="file"
+              id="thumbnailFile"
+              accept="image/*"
+              onChange={handleThumbnailChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
+            {thumbnailFile && (
+              <p className="mt-2 text-sm text-green-600">Selected file: {thumbnailFile.name}</p>
+            )}
+            {lectureData.thumbnailPreview && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-600 mb-1">Preview:</p>
+                <img 
+                  src={lectureData.thumbnailPreview} 
+                  alt="Thumbnail preview" 
+                  className="h-20 object-contain border rounded"
+                />
+              </div>
+            )}
+            {lectureData.thumbnail && !thumbnailFile && (
+              <div className="mt-2">
+                <p className="text-sm text-blue-600">Current thumbnail</p>
+                <img 
+                  src={lectureData.thumbnail} 
+                  alt="Current thumbnail" 
+                  className="h-20 object-contain border rounded mt-1"
+                />
+              </div>
+            )}
           </div>
           
           <div className="mb-6">
