@@ -34,8 +34,8 @@ export const AuthProvider = ({ children }) => {
                   router.push('/instructor/dashboard');
                 } else if (payload.role === 'admin') {
                   router.push('/admin');
-                } else {
-                  router.push('/');
+                } else if(payload.role === 'user') {
+                  router.push('/user/dashboard');
                 }
               }
             } else {
@@ -91,8 +91,8 @@ export const AuthProvider = ({ children }) => {
         router.push('/instructor/dashboard');
       } else if (userInfo.role === 'admin') {
         router.push('/admin');
-      } else {
-        router.push('/');
+      } else if(userInfo.role === 'user') {
+        router.push('/user/dashboard');
       }
 
       return { success: true };
