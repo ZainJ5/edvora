@@ -4,18 +4,23 @@ const CourseSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   category: String,
+duration: { 
+  type: Number, 
+  required: true, 
+  min: 1 
+},
   tags: [String],
   price: { type: Number, default: 0 }, 
   level: { type: String, enum: ["Beginner", "Intermediate", "Advanced"], default: "Beginner" },
 
   instructor: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true },
 
-  thumbnail: { type: String }, 
+  thumbnail: { type: String, required: true }, 
 
   lectures: [{
     title: { type: String, required: true },
     videoUrl: { type: String, required: true },
-    thumbnail: { type: String },   
+    thumbnail: { type: String, required: true },   
     views: { type: Number, default: 0 },
 
     transcript: String,        

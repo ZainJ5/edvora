@@ -31,7 +31,6 @@ export async function GET(request) {
       ];
     }
     
-    // Execute query
     const courses = await Course.find(query)
       .select('title description category tags price level thumbnail rating instructor')
       .populate({
@@ -44,7 +43,6 @@ export async function GET(request) {
       })
       .sort({ createdAt: -1 });
     
-    // Format response
     const formattedCourses = courses.map(course => {
       const instructorName = course.instructor?.userId?.name || 'Unknown Instructor';
       
