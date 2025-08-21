@@ -10,9 +10,12 @@ const CourseSchema = new mongoose.Schema({
 
   instructor: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true },
 
+  thumbnail: { type: String }, 
+
   lectures: [{
     title: { type: String, required: true },
     videoUrl: { type: String, required: true },
+    thumbnail: { type: String },   
     views: { type: Number, default: 0 },
 
     transcript: String,        
