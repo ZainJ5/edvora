@@ -6,13 +6,6 @@ import { motion } from 'framer-motion';
 export default function CourseCard({ course, isManageable = false, onEditClick, onDeleteClick, blueTheme = "#6673f2", className = "" }) {
   const thumbnailUrl = course.thumbnail;
 
-  const formatDuration = (minutes) => {
-    if (!minutes && minutes !== 0) return 'N/A';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins > 0 ? `${mins}m` : ''}` : `${mins}m`;
-  };
-
   return (
     <div className={`bg-white rounded-xl shadow-md overflow-hidden flex flex-col ${className}`}>
       <div className="relative h-48 w-full">
@@ -22,9 +15,6 @@ export default function CourseCard({ course, isManageable = false, onEditClick, 
           fill
           style={{ objectFit: 'cover' }}
           className="transition-opacity duration-500 ease-in-out"
-          onError={(e) => {
-            e.target.src = '/images/course-placeholder.jpg';
-          }}
         />
         {course.isPublished === false ? (
           <div className="absolute top-0 right-0 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 m-2 rounded">
@@ -57,7 +47,7 @@ export default function CourseCard({ course, isManageable = false, onEditClick, 
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>{formatDuration(course.duration)}</span>
+              <span>{course.duration}h</span>
             </div>
             <div className="flex items-center">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

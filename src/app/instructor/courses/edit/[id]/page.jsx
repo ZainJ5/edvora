@@ -9,46 +9,60 @@ export default function EditCoursePage() {
   const { currentUser, loading } = useAuth();
   const params = useParams();
   const router = useRouter();
-  const courseId = params.courseId;
+  const courseId = params.id;
   
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (!currentUser || !courseId) return;
-      
-      try {
-        const response = await fetch(`/api/instructor/courses/${courseId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+useEffect(() => {
+  const fetchCourse = async () => {
+    if (!currentUser || !courseId) {
+      console.log("No currentUser or courseId yet:", { currentUser, courseId });
+      return;
+    }
 
-        if (response.ok) {
-          const data = await response.json();
-          setCourse(data.course);
-        } else if (response.status === 404) {
-          router.push('/instructor/courses');
-        } else {
-          throw new Error('Failed to fetch course details');
-        }
-      } catch (err) {
-        setError(err.message);
-        console.error('Error fetching course details:', err);
-      } finally {
-        setIsLoading(false);
+    console.log("Fetching course for ID:", courseId);
+
+    try {
+      const response = await fetch(`/api/instructor/courses/${courseId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      console.log("Raw response status:", response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched course data:", data);
+        setCourse(data.course);
+      } else if (response.status === 404) {
+        console.warn("Course not found, redirecting...");
+        router.push('/instructor/courses');
+      } else {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to fetch course details');
       }
-    };
+    } catch (err) {
+      setError(err.message);
+      console.error('Error fetching course details:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  if (!loading) {
     if (currentUser && currentUser.role === 'instructor') {
       fetchCourse();
-    } else if (!loading && (!currentUser || currentUser.role !== 'instructor')) {
+    } else {
+      console.log("Redirecting unauthorized user:", currentUser);
       router.push('/auth');
     }
-  }, [currentUser, loading, courseId, router]);
+  }
+}, [currentUser, loading, courseId, router]); 
+
 
   const handleUpdateCourse = async (courseData) => {
     try {
@@ -76,7 +90,7 @@ export default function EditCoursePage() {
   };
 
   if (loading || isLoading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center text-black items-center h-screen">Loading...</div>;
   }
 
   if (error) {
