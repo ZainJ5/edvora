@@ -7,6 +7,7 @@ import LectureForm from '@/app/components/LectureForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Video, Clock, ArrowLeft, ChevronUp, ChevronDown, Tags, Layers, DollarSign, Book, Award } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import ConfirmationDialog from '@/app/instructor/courses/components/ConfirmationDialog';
 
 export default function CourseContent() {
   const { currentUser, loading } = useAuth();
@@ -22,6 +23,9 @@ export default function CourseContent() {
   const [editingLecture, setEditingLecture] = useState(null);
   const [editingLectureIndex, setEditingLectureIndex] = useState(null);
   const [activeSection, setActiveSection] = useState('content'); // 'content' or 'details'
+  
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [lectureToDelete, setLectureToDelete] = useState(null);
   
   useEffect(() => {
     const fetchCourse = async () => {
@@ -122,13 +126,14 @@ export default function CourseContent() {
     }
   };
 
-  const handleDeleteLecture = async (index) => {
-    if (!window.confirm('Are you sure you want to delete this lecture? This action cannot be undone.')) {
-      return;
-    }
-    
+  const handleDeleteLecture = (index) => {
+    setLectureToDelete(index);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteLecture = async () => {
     try {
-      const response = await fetch(`/api/instructor/courses/${courseId}/lectures/${index}`, {
+      const response = await fetch(`/api/instructor/courses/${courseId}/lectures/${lectureToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -137,7 +142,7 @@ export default function CourseContent() {
 
       if (response.ok) {
         const updatedLectures = [...course.lectures];
-        updatedLectures.splice(index, 1);
+        updatedLectures.splice(lectureToDelete, 1);
         
         setCourse({
           ...course,
@@ -236,17 +241,25 @@ export default function CourseContent() {
   };
 
   if (loading || isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-            <div className="w-12 h-12 border-t-4 border-b-4 border-blue-600 rounded-full animate-spin"></div>
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="relative h-16 w-16 mx-auto">
+              <div className="absolute inset-0 rounded-full border-t-4 border-[#2c3180] animate-spin"></div>
+              <div className="absolute inset-0 flex items-center mx-auto justify-center">
+                <Image
+                  src="/logo-1.png"
+                  alt="Edvora"
+                  width={32}
+                  height={32}
+                  className="rounded-md bg-white"
+                />
+              </div>
+            </div>
+            <p className="mt-4 text-[#2c3180] font-medium">Loading...</p>
           </div>
-          <p className="mt-4 text-gray-600 font-medium">Loading course...</p>
         </div>
-        <Toaster />
-      </div>
-    );
+      );
   }
 
   if (!course) {
@@ -270,6 +283,17 @@ export default function CourseContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster />
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={confirmDeleteLecture}
+        title="Delete Lecture"
+        message="Are you sure you want to delete this lecture? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
