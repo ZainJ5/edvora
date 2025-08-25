@@ -4,11 +4,11 @@ const CourseSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   category: String,
-duration: { 
-  type: Number, 
-  required: true, 
-  min: 1 
-},
+  duration: { 
+    type: Number, 
+    required: true, 
+    min: 1 
+  },
   tags: [String],
   price: { type: Number, default: 0 }, 
   level: { type: String, enum: ["Beginner", "Intermediate", "Advanced"], default: "Beginner" },
@@ -32,7 +32,18 @@ duration: {
       fileType: { type: String, enum: ["pdf", "doc", "ppt", "zip", "link"] }
     }],
 
-    quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }]
+    quizzes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Quiz" }],
+
+    questions: [{
+      askedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, 
+      text: { type: String, required: true }, 
+      createdAt: { type: Date, default: Date.now },
+      answers: [{
+        answeredBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now }
+      }]
+    }]
   }],
 
   enrolledStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

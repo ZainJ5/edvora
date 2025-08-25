@@ -24,4 +24,4 @@ const QuizSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-export default mongoose.models.Quiz || mongoose.model("Quiz", CourseSchema);
+export default mongoose.models.Quiz || mongoose.model("Quiz", QuizSchema);
