@@ -216,14 +216,13 @@ export default function InstructorQuizPage() {
         }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Course Quizzes</h1>
           <p className="text-gray-600">Create and manage quizzes for your courses</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Courses Panel */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
               <div className="flex items-center">
@@ -271,7 +270,6 @@ export default function InstructorQuizPage() {
             </div>
           </div>
 
-          {/* Lectures Panel */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-gray-200">
               <div className="flex items-center">
