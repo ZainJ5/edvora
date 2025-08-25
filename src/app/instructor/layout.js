@@ -77,9 +77,9 @@ export default function AdminLayout({ children }) {
   const menuItems = [
     { icon: <FaChartPie />, label: 'Dashboard', href: '/instructor/dashboard' },
     { icon: <FaBook />, label: 'Courses', href: '/instructor/courses' },
+    { icon: <FaToolbox />, label: 'Quiz', href: '/instructor/quiz' },
     { icon: <FaCommentDots />, label: 'Communication', href: '/instructor/communication' },
     { icon: <FaChartBar />, label: 'Performance', href: '/instructor/performance' },
-    { icon: <FaToolbox />, label: 'Tools', href: '/instructor/tools' },
     { icon: <FaQuestionCircle />, label: 'Resources', href: '/instructor/resources' }
   ];
   
