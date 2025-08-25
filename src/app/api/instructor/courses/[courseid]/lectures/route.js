@@ -5,6 +5,11 @@ import Course from '@/models/course';
 import Teacher from '@/models/instructor';
 import fs from 'fs';
 import path from 'path';
+import { SpeechConfig, AudioConfig, SpeechRecognizer, ResultReason } from 'microsoft-cognitiveservices-speech-sdk';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const ensureDirectoryExists = (directory) => {
   if (!fs.existsSync(directory)) {
@@ -35,18 +40,13 @@ async function parseFormData(request) {
 
   for (const [name, value] of formData.entries()) {
     if (value instanceof File) {
-      if (!files[name]) {
-        files[name] = [];
-      }
+      if (!files[name]) files[name] = [];
       files[name].push(value);
     } else {
-      if (!fields[name]) {
-        fields[name] = [];
-      }
+      if (!fields[name]) fields[name] = [];
       fields[name].push(value);
     }
   }
-
   return { fields, files };
 }
 
@@ -58,7 +58,6 @@ async function verifyInstructorCourse(token, courseId) {
   }
   
   await connectDB();
-  
   const teacher = await Teacher.findOne({ userId: decoded.userId });
   
   if (!teacher) {
@@ -78,30 +77,142 @@ async function verifyInstructorCourse(token, courseId) {
   return { teacher, course };
 }
 
-export async function POST(request, { params }) {
+async function extractAudioFromVideo(videoPath, audioPath) {
   try {
-    const token = request.headers.get('authorization')?.split(' ')[1];
-    const courseId = params.courseid;
+    const command = `ffmpeg -i "${videoPath}" -vn -acodec pcm_s16le -ar 16000 -ac 1 "${audioPath}"`;
+    await execAsync(command);
+    return true;
+  } catch (error) {
+    console.error('Error extracting audio:', error);
+    return false;
+  }
+}
+
+async function transcribeAudio(audioPath) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!fs.existsSync(audioPath) || fs.statSync(audioPath).size === 0) {
+        return reject(new Error('Audio file is missing or empty'));
+      }
+
+      const audioData = fs.readFileSync(audioPath);
+      const speechConfig = SpeechConfig.fromSubscription(
+        process.env.AZURE_SPEECH_KEY, 
+        process.env.AZURE_SPEECH_REGION
+      );
+      
+      speechConfig.speechRecognitionLanguage = "en-US";
+      const audioConfig = AudioConfig.fromWavFileInput(audioData);
+      const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
+      
+      let transcript = '';
+      
+      const timeout = setTimeout(() => {
+        console.log('Transcription timed out after 5 minutes');
+        recognizer.stopContinuousRecognitionAsync();
+        resolve(transcript.trim() || "Transcription timed out");
+      }, 5 * 60 * 1000);
+      
+      recognizer.recognized = (s, e) => {
+        if (e.result.reason === ResultReason.RecognizedSpeech) {
+          transcript += e.result.text + " ";
+          console.log("Recognized text:", e.result.text);
+        }
+      };
+      
+      recognizer.canceled = (s, e) => {
+        clearTimeout(timeout);
+        console.log(`Transcription canceled: ${e.errorCode} - ${e.errorDetails}`);
+        recognizer.stopContinuousRecognitionAsync();
+        resolve(transcript.trim() || `Transcription canceled: ${e.errorDetails}`);
+      };
+      
+      recognizer.sessionStopped = (s, e) => {
+        clearTimeout(timeout);
+        console.log('Transcription completed via session stop');
+        recognizer.stopContinuousRecognitionAsync();
+        resolve(transcript.trim());
+      };
+
+      recognizer.recognizing = (s, e) => {
+        console.log(`Recognition in progress: ${e.result.text}`);
+      };
+
+      recognizer.startContinuousRecognitionAsync(
+        () => console.log('Transcription started'),
+        (err) => {
+          clearTimeout(timeout);
+          console.error('Error starting transcription:', err);
+          reject(err);
+        }
+      );
+
+      setTimeout(() => {
+        recognizer.stopContinuousRecognitionAsync(
+          () => {
+            console.log('Forced transcription stop after 180 seconds');
+            clearTimeout(timeout);
+            resolve(transcript.trim() || "Partial transcription (forced stop)");
+          },
+          (err) => {
+            console.error('Error stopping forced transcription:', err);
+            clearTimeout(timeout);
+            reject(err);
+          }
+        );
+      }, 180 * 1000);  //Transcription for maximun 3min
+    } catch (error) {
+      console.error('Transcription setup error:', error);
+      reject(error);
+    }
+  });
+}
+
+async function generateAISummary(transcript) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        message: `Please provide a concise summary of this lecture transcript: ${transcript}`
+      })
+    });
     
+    if (!response.ok) {
+      throw new Error(`AI Summary API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.answer;
+  } catch (error) {
+    console.error('Error generating AI summary:', error);
+    return null;
+  }
+}
+
+export async function POST(request, context) {
+  try {
+    const { params } = context;
+    const courseId = await params.courseid;
+    
+    const token = request.headers.get('authorization')?.split(' ')[1];
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const result = await verifyInstructorCourse(token, courseId);
-    
     if (result.error) {
       return NextResponse.json({ error: result.error }, { status: result.status });
     }
     
     const { course } = result;
-    
     const contentType = request.headers.get('content-type') || '';
     let fields, files;
     
     try {
       if (contentType.includes('multipart/form-data')) {
-        const clonedRequest = request.clone();
-        const formData = await parseFormData(clonedRequest);
+        const formData = await parseFormData(request.clone());
         fields = formData.fields;
         files = formData.files;
       } else if (contentType.includes('application/json')) {
@@ -110,11 +221,7 @@ export async function POST(request, { params }) {
         files = {};
         
         for (const [key, value] of Object.entries(jsonData)) {
-          if (Array.isArray(value)) {
-            fields[key] = value;
-          } else {
-            fields[key] = [value];
-          }
+          fields[key] = Array.isArray(value) ? value : [value];
         }
       } else {
         return NextResponse.json({ 
@@ -132,10 +239,12 @@ export async function POST(request, { params }) {
     const lecturesDir = path.join(publicDir, 'lectures', courseId);
     const thumbnailsDir = path.join(publicDir, 'thumbnails', courseId);
     const resourcesDir = path.join(publicDir, 'resources', courseId);
+    const tempDir = path.join(publicDir, 'temp');
     
     ensureDirectoryExists(lecturesDir);
     ensureDirectoryExists(thumbnailsDir);
     ensureDirectoryExists(resourcesDir);
+    ensureDirectoryExists(tempDir);
     
     const lectureData = {
       title: fields.title ? fields.title[0] : '',
@@ -143,12 +252,15 @@ export async function POST(request, { params }) {
       resources: []
     };
     
+    let videoFullPath = '';
+    
     if (files.videoFile && files.videoFile[0]) {
       const videoFile = files.videoFile[0];
       const uniqueFilename = generateUniqueFilename(videoFile.name);
       const videoPath = path.join(lecturesDir, uniqueFilename);
       
       await saveFile(videoFile, videoPath);
+      videoFullPath = videoPath;
       
       const relativePath = `/lectures/${courseId}/${uniqueFilename}`;
       lectureData.videoUrl = relativePath;
@@ -237,13 +349,65 @@ export async function POST(request, { params }) {
       course.lectures = [];
     }
     
+    const lectureIndex = course.lectures.length;
     course.lectures.push(lectureData);
     await course.save();
+    
+    if (videoFullPath) {
+      (async () => {
+        try {
+          console.log('Starting transcription process');
+          const audioPath = path.join(tempDir, `audio_${Date.now()}.wav`);
+          const audioExtracted = await extractAudioFromVideo(videoFullPath, audioPath);
+          
+          if (audioExtracted) {
+            if (!fs.existsSync(audioPath) || fs.statSync(audioPath).size === 0) {
+              console.error('Audio file is missing or empty after extraction');
+              return;
+            }
+            
+            console.log(`Audio extracted successfully: ${audioPath}`);
+            console.log(`Audio file size: ${fs.statSync(audioPath).size} bytes`);
+            
+            const transcript = await transcribeAudio(audioPath);
+            console.log(`Transcription result: ${transcript.substring(0, 100)}...`);
+            
+            // Generate AI summary from transcript
+            const aiSummary = await generateAISummary(transcript);
+            console.log(`AI Summary generated: ${aiSummary?.substring(0, 100)}...`);
+            
+            await connectDB();
+            const updatedCourse = await Course.findById(courseId);
+            if (updatedCourse && updatedCourse.lectures && updatedCourse.lectures[lectureIndex]) {
+              updatedCourse.lectures[lectureIndex].transcript = transcript;
+              
+              if (aiSummary) {
+                updatedCourse.lectures[lectureIndex].aiSummary = aiSummary;
+              }
+              
+              await updatedCourse.save();
+              console.log('Lecture updated with transcription and AI summary');
+            }
+            
+            try {
+              fs.unlinkSync(audioPath);
+              console.log('Temporary audio file deleted');
+            } catch (cleanupError) {
+              console.error('Error deleting temporary file:', cleanupError);
+            }
+          } else {
+            console.log('Audio extraction failed, skipping transcription');
+          }
+        } catch (error) {
+          console.error('Transcription background process error:', error);
+        }
+      })().catch(err => console.error('Background transcription error:', err));
+    }
     
     const responseData = { ...lectureData };
 
     return NextResponse.json({ 
-      message: 'Lecture added successfully',
+      message: 'Lecture added successfully. Transcription and AI summary processing in background.',
       lecture: responseData
     }, { status: 201 });
   } catch (error) {
