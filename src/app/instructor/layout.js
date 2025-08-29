@@ -202,7 +202,6 @@ export default function AdminLayout({ children }) {
       <div className="flex flex-col flex-1 ml-16 transition-all duration-300">
         <header className="bg-white h-16 flex items-center px-6 shadow-sm border-b border-gray-100">
           <div className="flex-1 flex items-center">
-            {/* You can use pathname to display current page title */}
           </div>
 
           <div className="flex items-center space-x-4">
