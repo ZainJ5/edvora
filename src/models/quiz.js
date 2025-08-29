@@ -14,7 +14,7 @@ const QuizSchema = new mongoose.Schema({
     explanation: String
   }],
 
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher"},
   aiGenerated: { type: Boolean, default: false },
 
   attempts: [{

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -22,7 +23,26 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'instructor', 'admin'],
     default: 'user'
-  }
+  },
+  courseProgress: [
+    {
+      course: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+        required: true
+      },
+      completedLectures: [String],
+      completedQuizzes: [String],  
+      progress: {
+        type: Number,
+        default: 0
+      },
+      lastAccessed: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  ]
 }, { timestamps: true });  
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
