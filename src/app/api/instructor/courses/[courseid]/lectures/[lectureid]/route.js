@@ -81,7 +81,7 @@ async function verifyInstructorCourse(token, courseId) {
 export async function PUT(request, { params }) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1];
-    const courseId = params.courseid;
+    const courseId = await params.courseid;
     const lectureIndex = parseInt(params.lectureid);
     
     if (!token) {
@@ -231,7 +231,7 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1];
-    const courseId = params.courseid;
+    const courseId = await params.courseid;
     const lectureIndex = parseInt(params.lectureid);
     
     if (!token) {
@@ -251,8 +251,6 @@ export async function DELETE(request, { params }) {
     }
     
     // Optional: Delete the physical files associated with this lecture
-    // This would require additional code to track and remove the files
-    
     course.lectures.splice(lectureIndex, 1);
     await course.save();
     

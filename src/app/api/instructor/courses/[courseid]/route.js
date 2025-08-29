@@ -68,7 +68,7 @@ async function verifyInstructorCourse(token, courseId) {
 export async function GET(request, { params }) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1];
-    const courseId = params.courseid; 
+    const courseId = await params.courseid; 
     
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -95,7 +95,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1];
-    const courseId = params.courseid; 
+    const courseId = await params.courseid; 
     console.log("Request Object is:",request)
     console.log("Params Object is:",params)
     

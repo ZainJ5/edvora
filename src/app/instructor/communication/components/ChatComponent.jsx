@@ -40,6 +40,8 @@ export default function ChatComponent({ currentUser }) {
     if (selectedStudent && currentUser && database) {
       const chatParticipants = [currentUser.userId, selectedStudent.userId].sort();
       const chatId = `chat_${chatParticipants[0]}_${chatParticipants[1]}`;
+      console.log("chatid:",chatId)
+      
       const chatRef = ref(database, `chats/${chatId}`);
       
       get(chatRef).then((snapshot) => {
@@ -350,7 +352,7 @@ export default function ChatComponent({ currentUser }) {
                     placeholder="Type a message..."
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    className="w-full border-gray-300 rounded-full shadow-sm focus:ring-green-500 focus:border-green-500"
+                    className="w-full p-3 border-gray-300 rounded-full shadow-sm focus:ring-green-500 focus:border-green-500"
                     required
                   />
                 </div>
