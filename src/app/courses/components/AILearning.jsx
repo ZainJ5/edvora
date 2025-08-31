@@ -1,16 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { TalkingHead } from '../../../lib/talkinghead/modules/talkinghead.mjs'; 
+import { TalkingHead } from '../../../lib/talkinghead/modules/talkinghead.mjs';
+import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
 export default function AILearning({ course, currentLecture }) {
   const containerRef = useRef(null);
   const headRef = useRef(null);
   const audioContextRef = useRef(null);
-  const [text, setText] = useState('');
+  const [teachingScript, setTeachingScript] = useState('');
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [scriptLoading, setScriptLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [currentSegment, setCurrentSegment] = useState(0);
+  const scriptSegmentsRef = useRef([]);
+  
+  // Initialize avatar and audio context
   useEffect(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)({
@@ -43,6 +51,11 @@ export default function AILearning({ course, currentLecture }) {
           });
           
           headRef.current = head;
+          
+          // Auto-generate script when avatar is ready
+          if (currentLecture) {
+            generateTeachingScript();
+          }
         } catch (err) {
           console.error('Avatar initialization error:', err);
           setError('Failed to initialize avatar: ' + err.message);
@@ -65,7 +78,24 @@ export default function AILearning({ course, currentLecture }) {
         audioContextRef.current = null;
       }
     };
-  }, []);
+  }, [currentLecture]);
+
+  useEffect(() => {
+    if (teachingScript) {
+      prepareScriptSegments();
+    }
+  }, [teachingScript]);
+
+  const prepareScriptSegments = () => {
+    // Split script into natural segments (sentences or paragraphs)
+    const segments = teachingScript
+      .split(/(?<=[.!?])\s+/)
+      .filter(segment => segment.trim().length > 0)
+      .map(segment => segment.trim());
+    
+    scriptSegmentsRef.current = segments;
+    setCurrentSegment(0);
+  };
 
   const azureToOculus = {
     0: 'sil', // silence
@@ -110,10 +140,53 @@ export default function AILearning({ course, currentLecture }) {
     'U': 0.7
   };
 
-  const handleSpeak = async () => {
-    if (!text || !headRef.current) return;
+  const generateTeachingScript = async () => {
+    setScriptLoading(true);
+    setError(null);
+    
+    try {
+      const prompt = `
+        You are an expert AI teacher. Create an engaging 3-5 minute teaching script based on this lecture content.
+        Use a conversational, friendly tone and present the material in a clear, structured way.
+        Format the script as if you're teaching directly to the student, with natural pauses and transitions.
+        
+        LECTURE TITLE: ${currentLecture?.title || 'Lecture'}
+        
+        TRANSCRIPT: ${currentLecture?.transcript || 'No transcript available'}
+        
+        SUMMARY: ${currentLecture?.aiSummary || 'No summary available'}
+        
+        Create a teaching script that explains the concepts, provides examples, and engages the student.
+        Structure your response as a complete teaching script only, without any prefatory text.
+      `;
+      
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: prompt })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate teaching script');
+      }
+      
+      const data = await response.json();
+      setTeachingScript(data.answer);
+    } catch (err) {
+      console.error('Error generating teaching script:', err);
+      setError('Failed to generate teaching script. Please try again.');
+    } finally {
+      setScriptLoading(false);
+    }
+  };
+
+  const speakSegment = async (segmentText) => {
+    if (!segmentText || !headRef.current) return false;
     setError(null);
     setIsLoading(true);
+    setIsPlaying(true);
 
     try {
       if (audioContextRef.current.state === 'suspended') {
@@ -124,7 +197,7 @@ export default function AILearning({ course, currentLecture }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          text,
+          text: segmentText,
           voice: 'en-US-JennyNeural'
         }),
       });
@@ -164,8 +237,6 @@ export default function AILearning({ course, currentLecture }) {
         durations.push(Math.max(0.05, times[i + 1] - times[i]));
       }
       durations.push(0.1);
-      
-      console.log("Speaking with visemes:", visemeStrings.length);
 
       const mouthOpenValues = visemeStrings.map(viseme => {
         switch(viseme) {
@@ -187,6 +258,20 @@ export default function AILearning({ course, currentLecture }) {
           default: return 0.1;    // Default slight opening
         }
       });
+      
+      // Progress update interval
+      const totalDuration = audioBuffer.duration;
+      let startTime = Date.now();
+      const progressInterval = setInterval(() => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        const currentProgress = Math.min(100, (elapsed / totalDuration) * 100);
+        setProgress(currentProgress);
+        
+        if (currentProgress >= 100) {
+          clearInterval(progressInterval);
+        }
+      }, 100);
+
       await headRef.current.speakAudio({
         audio: audioBuffer,
         visemes: visemeStrings,
@@ -201,43 +286,142 @@ export default function AILearning({ course, currentLecture }) {
           }
         }
       });
+      
+      clearInterval(progressInterval);
+      setProgress(100);
+      return true;
     } catch (err) {
       console.error('Speech error:', err);
       setError('Error: ' + err.message);
+      return false;
     } finally {
       setIsLoading(false);
+      setIsPlaying(false);
+    }
+  };
+
+  const handlePlayPause = async () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+      // Implement pause functionality here
+      // This would require deeper integration with the TalkingHead API
+    } else {
+      if (scriptSegmentsRef.current.length === 0) return;
+      
+      // Reset progress if we're starting from beginning
+      if (currentSegment === 0 || currentSegment >= scriptSegmentsRef.current.length) {
+        setCurrentSegment(0);
+        setProgress(0);
+      }
+      
+      const speakNext = async (index) => {
+        if (index >= scriptSegmentsRef.current.length) {
+          setIsPlaying(false);
+          return;
+        }
+        
+        setCurrentSegment(index);
+        const success = await speakSegment(scriptSegmentsRef.current[index]);
+        if (success && index + 1 < scriptSegmentsRef.current.length) {
+          // Small pause between segments
+          setTimeout(() => speakNext(index + 1), 500);
+        } else {
+          setIsPlaying(false);
+        }
+      };
+      
+      speakNext(currentSegment);
+    }
+  };
+
+  const handleRestart = () => {
+    setCurrentSegment(0);
+    setProgress(0);
+    setIsPlaying(false);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    // Implement actual muting logic with the TalkingHead API
+    if (headRef.current) {
+      // This is a placeholder - the actual implementation would depend on the TalkingHead API
+      // headRef.current.setVolume(isMuted ? 1.0 : 0.0);
     }
   };
 
   return (
-    <div>
+    <div className="ai-learning-container">
       <div 
         ref={containerRef} 
-        style={{ 
-          width: '100%', 
-          height: '500px', 
-          background: '#f0f0f0',
-          position: 'relative'
-        }}
+        className="avatar-container"
       />
-      <div style={{ margin: '10px 0' }}>
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Type text to speak (e.g., Hello, how are you today?)"
-          style={{ width: '300px', marginRight: '10px', padding: '8px' }}
-          disabled={isLoading}
-        />
-        <button 
-          onClick={handleSpeak} 
-          disabled={isLoading || !headRef.current}
-          style={{ padding: '8px 16px' }}
-        >
-          {isLoading ? 'Speaking...' : 'Speak'}
-        </button>
+
+      <div className="script-container">
+        {scriptLoading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Generating teaching content...</p>
+          </div>
+        ) : teachingScript ? (
+          <>
+            <div className="script-display">
+              {scriptSegmentsRef.current.map((segment, index) => (
+                <p 
+                  key={index} 
+                  className={`script-segment ${index === currentSegment ? 'active' : ''} ${index < currentSegment ? 'spoken' : ''}`}
+                >
+                  {segment}
+                </p>
+              ))}
+            </div>
+            
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+            </div>
+            
+            <div className="controls">
+              <button 
+                className="control-button" 
+                onClick={handlePlayPause}
+                disabled={isLoading || !headRef.current}
+                aria-label={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+              </button>
+              
+              <button 
+                className="control-button" 
+                onClick={handleRestart}
+                disabled={isLoading || currentSegment === 0}
+                aria-label="Restart"
+              >
+                <RotateCcw size={24} />
+              </button>
+              
+              <button 
+                className="control-button" 
+                onClick={toggleMute}
+                aria-label={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="empty-state">
+            <p>No teaching script available.</p>
+            <button 
+              onClick={generateTeachingScript}
+              disabled={isLoading || scriptLoading}
+              className="generate-button"
+            >
+              Generate Teaching Content
+            </button>
+          </div>
+        )}
+        
+        {error && <div className="error-message">{error}</div>}
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 }
