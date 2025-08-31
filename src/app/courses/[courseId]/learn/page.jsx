@@ -28,7 +28,8 @@ import {
   FaBookmark,
   FaExclamationCircle,
   FaPaperPlane,
-  FaRegUser
+  FaRegUser,
+  FaArtificial
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
@@ -36,6 +37,8 @@ import Quiz from '../../components/Quiz';
 import Notes from '../../components/Notes';
 import InstructorChat from '../../components/InstructorChat';
 import LectureQuestions from '../../components/LectureQuestions';
+import dynamic from 'next/dynamic';
+import AILearning from '../../components/AILearning'
 import { useAuth } from '../../../../context/AuthContext'; 
 import jsPDF from 'jspdf';
 
@@ -174,7 +177,7 @@ const CourseLearn = () => {
       
       const data = await response.json();
       setCourse(data.course);
-      console.log("Course in main page:",course)
+      console.log("Course in main page:", data.course);
       const progressResponse = await fetch(`/api/courses/${courseId}/progress`, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -836,6 +839,11 @@ const CourseLearn = () => {
                       />
                     </div>
                   )}
+                  {activeTab === 'aiLearning' && (
+                    <div className="w-full aspect-video bg-gradient-to-b from-[#0A4D7C]/10 to-white flex items-center justify-center">
+                      <AILearning course={course} currentLecture={currentLecture} />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="px-4 md:px-8 py-6 max-w-5xl mx-auto w-full">
@@ -921,6 +929,16 @@ const CourseLearn = () => {
                         }`}
                       >
                         Video Content
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('aiLearning')}
+                        className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
+                          activeTab === 'aiLearning'
+                            ? 'border-[#FFA500] text-[#FFA500]'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        <FaRobot className="mr-2" /> AI Learning
                       </button>
                       <button
                         onClick={() => setActiveTab('summary')}
@@ -1207,84 +1225,84 @@ const CourseLearn = () => {
             {showQuiz && currentLecture && (
               <div className="p-4 md:p-8 max-w-4xl mx-auto">
                 <Quiz 
-                  quiz={{ 
-                    lectureId: currentLecture._id,
-                    courseId: courseId,
-                    quizId: currentLecture.quizzes && currentLecture.quizzes.length > 0 
-                      ? currentLecture.quizzes[0]
-                      : null,
-                    lectureTitle: currentLecture.title,
-                    transcript: currentLecture.transcript || '',
-                    aiSummary: currentLecture.aiSummary || ''
-                  }}
-                  onComplete={handleQuizCompletion}
-                  onBack={() => setShowQuiz(false)}
-                />
-              </div>
-            )}
+                  quiz={{
+                  lectureId: currentLecture._id,
+                  courseId: courseId,
+                  quizId: currentLecture.quizzes && currentLecture.quizzes.length > 0 
+                    ? currentLecture.quizzes[0]
+                    : null,
+                  lectureTitle: currentLecture.title,
+                  transcript: currentLecture.transcript || '',
+                  aiSummary: currentLecture.aiSummary || ''
+                }}
+                onComplete={handleQuizCompletion}
+                onBack={() => setShowQuiz(false)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+    
+    {/* Course Completion Modal */}
+    {showCourseCompletionModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6 md:p-8 transform transition-all duration-300">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FFA500]/10 mb-5">
+              <FaTrophy className="text-4xl text-[#FFA500]" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#0A4D7C]">Congratulations!</h2>
+            <p className="text-gray-600 mt-2">
+              You've successfully completed the course "{course.title}"
+            </p>
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-5 mb-6 border border-gray-200 shadow-inner">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[#0A4D7C] font-medium">Your Achievement</span>
+              <span className="text-[#FFA500] font-bold">{progress}% Complete</span>
+            </div>
+            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-4">
+              <div 
+                className="h-full rounded-full bg-[#FFA500]"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600">
+              You've completed {completedLectures.length} lectures and {completedQuizzes.length} quizzes.
+            </p>
+          </div>
+          
+          <div className="grid gap-4 mb-6">
+            <button
+              onClick={handleCourseCertificate}
+              className="flex items-center justify-center px-5 py-3 bg-[#0A4D7C] text-white rounded-lg hover:bg-[#083d63] transition-colors duration-300 font-medium shadow-md"
+            >
+              <FaCertificate className="mr-2" /> Get Your Certificate
+            </button>
+            
+            <button
+              onClick={() => router.push('/courses')}
+              className="flex items-center justify-center px-5 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-300 font-medium shadow-sm"
+            >
+              <FaGraduationCap className="mr-2" /> Explore More Courses
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <button
+              onClick={() => setShowCourseCompletionModal(false)}
+              className="text-gray-500 hover:text-[#0A4D7C] text-sm font-medium transition-colors duration-300"
+            >
+              Continue Learning
+            </button>
           </div>
         </div>
       </div>
-      
-      {/* Course Completion Modal */}
-      {showCourseCompletionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6 md:p-8 transform transition-all duration-300">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FFA500]/10 mb-5">
-                <FaTrophy className="text-4xl text-[#FFA500]" />
-              </div>
-              <h2 className="text-2xl font-bold text-[#0A4D7C]">Congratulations!</h2>
-              <p className="text-gray-600 mt-2">
-                You've successfully completed the course "{course.title}"
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-5 mb-6 border border-gray-200 shadow-inner">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[#0A4D7C] font-medium">Your Achievement</span>
-                <span className="text-[#FFA500] font-bold">{progress}% Complete</span>
-              </div>
-              <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-4">
-                <div 
-                  className="h-full rounded-full bg-[#FFA500]"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <p className="text-sm text-gray-600">
-                You've completed {completedLectures.length} lectures and {completedQuizzes.length} quizzes.
-              </p>
-            </div>
-            
-            <div className="grid gap-4 mb-6">
-              <button
-                onClick={handleCourseCertificate}
-                className="flex items-center justify-center px-5 py-3 bg-[#0A4D7C] text-white rounded-lg hover:bg-[#083d63] transition-colors duration-300 font-medium shadow-md"
-              >
-                <FaCertificate className="mr-2" /> Get Your Certificate
-              </button>
-              
-              <button
-                onClick={() => router.push('/courses')}
-                className="flex items-center justify-center px-5 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-300 font-medium shadow-sm"
-              >
-                <FaGraduationCap className="mr-2" /> Explore More Courses
-              </button>
-            </div>
-            
-            <div className="text-center">
-              <button
-                onClick={() => setShowCourseCompletionModal(false)}
-                className="text-gray-500 hover:text-[#0A4D7C] text-sm font-medium transition-colors duration-300"
-              >
-                Continue Learning
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+    )}
+  </>
+);
 };
 
 export default CourseLearn;

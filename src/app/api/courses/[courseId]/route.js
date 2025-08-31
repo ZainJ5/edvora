@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/moongose';
 import Course from '@/models/course';
+import Teacher from '@/models/instructor';
 
 export async function GET(request, { params }) {
   try {
     await connectDB();
     
-    const courseId = params.courseId;
+    const courseId = await params.courseId;
     
     const course = await Course.findById(courseId)
       .populate({
@@ -48,7 +49,7 @@ export async function GET(request, { params }) {
       totalEnrollments: course.totalEnrollments,
       instructor: instructorData,
       lectures: course.lectures.map(lecture => ({
-        _id: lecture._id, // Include the lecture ID
+        _id: lecture._id, 
         title: lecture.title,
         videoUrl: lecture.videoUrl,
         thumbnail: lecture.thumbnail,
@@ -56,7 +57,7 @@ export async function GET(request, { params }) {
         transcript: lecture.transcript,
         aiSummary: lecture.aiSummary,
         resources: lecture.resources ? lecture.resources.map(resource => ({
-          _id: resource._id, // Include resource ID too
+          _id: resource._id, 
           title: resource.title,
           fileUrl: resource.fileUrl,
           fileType: resource.fileType

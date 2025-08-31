@@ -153,10 +153,10 @@ const Notes = ({ courseId, lectureId, lectureTitle }) => {
       </div>
       
       <div className="p-4">
-        <div className="mb-2 text-xs text-gray-500 flex items-center">
+        {/* <div className="mb-2 text-xs text-gray-500 flex items-center">
           <FaInfoCircle className="mr-1" />
           Your notes are stored locally in this browser
-        </div>
+        </div> */}
         
         <textarea
           ref={textareaRef}

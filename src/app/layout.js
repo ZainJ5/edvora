@@ -3,6 +3,8 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import Navbar from "./components/Navbar";
 import ClientLayout from "./components/ClientLayout";
+import Script from 'next/script'
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +32,7 @@ export default function RootLayout({ children }) {
             {children}
           </ClientLayout>
         </AuthProvider>
+        <Script src="/scripts/three-init.js" strategy="beforeInteractive" />
       </body>
     </html>
   );
