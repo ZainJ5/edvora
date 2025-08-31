@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Video, Clock, ArrowLeft, ChevronUp, ChevronDown, Tags, Layers, DollarSign, Book, Award } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import ConfirmationDialog from '@/app/instructor/courses/components/ConfirmationDialog';
+import Image from 'next/image';
 
 export default function CourseContent() {
   const { currentUser, loading } = useAuth();
@@ -22,7 +23,7 @@ export default function CourseContent() {
   const [showLectureForm, setShowLectureForm] = useState(false);
   const [editingLecture, setEditingLecture] = useState(null);
   const [editingLectureIndex, setEditingLectureIndex] = useState(null);
-  const [activeSection, setActiveSection] = useState('content'); // 'content' or 'details'
+  const [activeSection, setActiveSection] = useState('content'); 
   
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [lectureToDelete, setLectureToDelete] = useState(null);
