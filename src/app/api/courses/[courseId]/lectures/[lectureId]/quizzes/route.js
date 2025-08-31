@@ -1,7 +1,18 @@
-import { connectDB } from '@/lib/db';
+import connectDB from '../../../../../../../lib/moongose';
 import Quiz from '@/models/quiz';
 import Course from '@/models/course';
-import { verifyToken } from '@/lib/auth';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+function verifyToken(token) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    console.error('Invalid token:', err.message);
+    return null;
+  }
+}
 
 export async function POST(req, { params }) {
   try {

@@ -58,7 +58,6 @@ const CourseLearn = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [progress, setProgress] = useState(0);
   const [showSidebarMobile, setShowSidebarMobile] = useState(false);
-  const [showQuiz, setShowQuiz] = useState(false);
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [updatingProgress, setUpdatingProgress] = useState(false);
   const [showCourseCompletionModal, setShowCourseCompletionModal] = useState(false);
@@ -259,7 +258,6 @@ const CourseLearn = () => {
     setCurrentLectureIndex(index);
     setActiveTab('video');
     setVideoCompleted(completedLectures.includes(course.lectures[index]._id));
-    setShowQuiz(false);
     
     if (window.innerWidth < 768) {
       setShowSidebarMobile(false);
@@ -282,7 +280,7 @@ const CourseLearn = () => {
     setVideoCompleted(true);
     
     if (currentLecture.quizzes && currentLecture.quizzes.length > 0) {
-      setShowQuiz(true);
+      setActiveTab('quiz');
     }
   };
 
@@ -307,7 +305,7 @@ const CourseLearn = () => {
       setVideoCompleted(true);
       
       if (currentLecture.quizzes && currentLecture.quizzes.length > 0) {
-        setShowQuiz(true);
+        setActiveTab('quiz');
       }
     } catch (err) {
       console.error("Error marking lecture complete:", err);
@@ -341,7 +339,7 @@ const CourseLearn = () => {
       }
       
       toast.success('Quiz completed successfully! You can now proceed to the next lecture.');
-      setShowQuiz(false);
+      setActiveTab('video');
       
       if (currentLectureIndex < course.lectures.length - 1) {
         setCurrentLectureIndex(currentLectureIndex + 1);
@@ -454,7 +452,6 @@ const CourseLearn = () => {
       setCurrentLectureIndex(currentLectureIndex + 1);
       setActiveTab('video');
       setVideoCompleted(completedLectures.includes(course.lectures[currentLectureIndex + 1]._id));
-      setShowQuiz(false);
     }
   };
 
@@ -463,7 +460,6 @@ const CourseLearn = () => {
       setCurrentLectureIndex(currentLectureIndex - 1);
       setActiveTab('video');
       setVideoCompleted(completedLectures.includes(course.lectures[currentLectureIndex - 1]._id));
-      setShowQuiz(false);
     }
   };
 
@@ -823,7 +819,7 @@ const CourseLearn = () => {
           
           {/* Main Content Area */}
           <div className="flex-1 overflow-y-auto pb-16 bg-gray-50">
-            {currentLecture && !showQuiz && (
+            {currentLecture && (
               <div className="flex flex-col h-full">
                 {/* Video Container */}
                 <div className="bg-black relative shadow-lg">
@@ -871,7 +867,7 @@ const CourseLearn = () => {
                         </div>
                         {hasQuiz && !isQuizCompleted && (
                           <button
-                            onClick={() => setShowQuiz(true)}
+                            onClick={() => setActiveTab('quiz')}
                             className="px-5 py-3 bg-[#FFA500] text-white rounded-lg hover:bg-[#e69500] transition-colors duration-300 font-medium whitespace-nowrap ml-4 shadow-md"
                           >
                             <FaQuestionCircle className="inline mr-2" /> Take Quiz
@@ -990,6 +986,16 @@ const CourseLearn = () => {
                       >
                         <FaQuestionCircle className="mr-2" /> Q&A
                       </button>
+                      <button
+                        onClick={() => setActiveTab('quiz')}
+                        className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
+                          activeTab === 'quiz'
+                            ? 'border-[#FFA500] text-[#FFA500]'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        <FaQuestionCircle className="mr-2" /> Quiz
+                      </button>
                     </nav>
                   </div>
                   
@@ -1032,7 +1038,7 @@ const CourseLearn = () => {
                         {hasQuiz && isLectureCompleted && !isQuizCompleted && (
                           <div className="mt-8 pt-6 border-t border-gray-200">
                             <button
-                              onClick={() => setShowQuiz(true)}
+                              onClick={() => setActiveTab('quiz')}
                               className="px-6 py-3 bg-[#0A4D7C] text-white rounded-lg hover:bg-[#083d63] transition-colors duration-300 flex items-center shadow-md"
                             >
                               <FaQuestionCircle className="mr-2" />
@@ -1188,6 +1194,59 @@ const CourseLearn = () => {
                     {activeTab === 'questions' && (
                       <LectureQuestions courseId={courseId} lectureId={currentLecture._id} currentUser={currentUser} />
                     )}
+
+                    {activeTab === 'quiz' && (
+                      <>
+                        {!isLectureCompleted ? (
+                          <div className="bg-[#FFA500]/5 border border-[#FFA500]/20 rounded-lg p-5 flex items-center shadow-sm">
+                            <div className="bg-[#0A4D7C]/10 p-3 rounded-full mr-4">
+                              <FaExclamationCircle className="text-[#0A4D7C] text-2xl" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-[#0A4D7C] text-lg">
+                                Complete Lecture First
+                              </h3>
+                              <p className="text-gray-600 mt-1">
+                                Please watch the video and mark the lecture as complete before taking the quiz.
+                              </p>
+                            </div>
+                            <button
+                              onClick={handleMarkLectureComplete}
+                              disabled={updatingProgress}
+                              className={`px-5 py-3 bg-[#0A4D7C] text-white rounded-lg hover:bg-[#083d63] transition-colors duration-300 font-medium whitespace-nowrap ml-4 shadow-md ${
+                                updatingProgress ? 'opacity-70 cursor-not-allowed' : ''
+                              }`}
+                            >
+                              {updatingProgress ? (
+                                <span className="flex items-center">
+                                  <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
+                                  Marking...
+                                </span>
+                              ) : (
+                                <>
+                                  <FaCheck className="inline mr-2" /> Mark Complete
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <Quiz 
+                            quiz={{
+                              lectureId: currentLecture._id,
+                              courseId: courseId,
+                              quizId: currentLecture.quizzes && currentLecture.quizzes.length > 0 
+                                ? currentLecture.quizzes[0]
+                                : null,
+                              lectureTitle: currentLecture.title,
+                              transcript: currentLecture.transcript || '',
+                              aiSummary: currentLecture.aiSummary || ''
+                            }}
+                            onComplete={handleQuizCompletion}
+                            onBack={() => setActiveTab('video')}
+                          />
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
                 
@@ -1221,28 +1280,9 @@ const CourseLearn = () => {
                 </div>
               </div>
             )}
-            
-            {showQuiz && currentLecture && (
-              <div className="p-4 md:p-8 max-w-4xl mx-auto">
-                <Quiz 
-                  quiz={{
-                  lectureId: currentLecture._id,
-                  courseId: courseId,
-                  quizId: currentLecture.quizzes && currentLecture.quizzes.length > 0 
-                    ? currentLecture.quizzes[0]
-                    : null,
-                  lectureTitle: currentLecture.title,
-                  transcript: currentLecture.transcript || '',
-                  aiSummary: currentLecture.aiSummary || ''
-                }}
-                onComplete={handleQuizCompletion}
-                onBack={() => setShowQuiz(false)}
-              />
-            </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
     
     {/* Course Completion Modal */}
     {showCourseCompletionModal && (
