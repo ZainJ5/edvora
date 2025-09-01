@@ -4,14 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { usePathname, useRouter } from 'next/navigation';
-import { Search, ChevronDown, ShoppingCart, Bell, Menu, X, Book, Gift, BookOpen, Award, Briefcase } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { ChevronDown, ShoppingCart, Bell, Menu, X, Book, Gift, BookOpen, Award, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import SearchBar from './SearchBar';
 
 export default function Navbar() {
   const { currentUser, logout, loading } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
@@ -19,8 +19,6 @@ export default function Navbar() {
   const profileButtonRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const categoryButtonRef = useRef(null);
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
   const categories = [
     { value: "Web Development", label: "Web Development", icon: <Book size={16} /> },
@@ -71,14 +69,6 @@ export default function Navbar() {
   if (pathname.startsWith('/instructor/dashboard')) {
     return null;
   }
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      router.push(`/courses?search=${encodeURIComponent(searchTerm)}`);
-      setSearchTerm('');
-    }
-  };
   
   const menuVariants = {
     hidden: { 
@@ -184,16 +174,24 @@ export default function Navbar() {
                       style={{ transformOrigin: 'top left' }}
                     >
                       <div className="grid grid-cols-1 gap-1">
-                        {categories.map((category) => (
-                          <Link 
-                            key={category.value}
-                            href={`/courses?category=${category.value.toLowerCase().replace(/\s+/g, '-')}`} 
-                            className="px-4 py-2 text-gray-800 hover:bg-[#0A4D7C]/5 hover:text-[#0A4D7C] flex items-center transition-colors duration-150"
-                          >
-                            <span className="mr-2 text-gray-500">{category.icon}</span>
-                            {category.label}
-                          </Link>
-                        ))}
+                        {categories.map((category) => {
+                          let categoryParam = category.value.toLowerCase().replace(/\s+/g, '-');
+                          let extraParams = '';
+                          if (category.value === "AI") {
+                            categoryParam = "AI";
+                            extraParams = '&sortBy=newest';
+                          }
+                          return (
+                            <Link 
+                              key={category.value}
+                              href={`/courses?category=${categoryParam}${extraParams}`} 
+                              className="px-4 py-2 text-gray-800 hover:bg-[#0A4D7C]/5 hover:text-[#0A4D7C] flex items-center transition-colors duration-150"
+                            >
+                              <span className="mr-2 text-gray-500">{category.icon}</span>
+                              {category.label}
+                            </Link>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}
@@ -232,23 +230,8 @@ export default function Navbar() {
             </div>
           </div>
           
-          <div className={`hidden md:flex items-center justify-center flex-1 max-w-lg mx-4 transition-all duration-300 ${searchFocused ? 'scale-105' : ''}`}>
-            <form onSubmit={handleSearch} className="w-full">
-              <div className={`relative rounded-full transition-all duration-300 ${searchFocused ? 'shadow-md ring-2 ring-[#0A4D7C]/20' : 'shadow-sm'}`}>
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className={`h-5 w-5 transition-colors duration-300 ${searchFocused ? 'text-[#0A4D7C]' : 'text-gray-400'}`} />
-                </div>
-                <input
-                  className="block w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:bg-white focus:placeholder-gray-400 focus:border-[#0A4D7C]/30 transition-all duration-200 text-sm"
-                  placeholder="Search for courses, topics, or skills"
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                />
-              </div>
-            </form>
+          <div className={`hidden md:flex items-center justify-center flex-1 max-w-lg mx-4 transition-all duration-300`}>
+            <SearchBar />
           </div>
           
           <div className="flex items-center space-x-2 sm:space-x-4">
@@ -387,22 +370,7 @@ export default function Navbar() {
       </div>
 
       <div className="sm:hidden px-4 pb-4">
-        <form onSubmit={handleSearch} className="w-full">
-          <div className={`relative transition-all duration-300 rounded-full ${searchFocused ? 'shadow-md ring-2 ring-[#0A4D7C]/20' : 'shadow-sm'}`}>
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className={`h-5 w-5 transition-colors text-black duration-300`} />
-            </div>
-            <input
-              className="block w-full pl-10 pr-3 py-2.5 border text-black border-gray-300 rounded-full leading-5 bg-gray-50 focus:border-[#0A4D7C]/30 transition-all duration-200"
-              placeholder="Search courses"
-              type="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-          </div>
-        </form>
+        <SearchBar variant="mobile" />
       </div>
 
       <AnimatePresence>
@@ -419,16 +387,24 @@ export default function Navbar() {
                 Browse Categories
               </div>
               <div className="pl-3 space-y-1">
-                {categories.slice(0, 6).map((category) => (
-                  <Link
-                    key={category.value}
-                    href={`/courses?category=${category.value.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-[#0A4D7C] hover:bg-[#0A4D7C]/5 flex items-center"
-                  >
-                    <span className="mr-2 text-gray-500">{category.icon}</span>
-                    {category.label}
-                  </Link>
-                ))}
+                {categories.slice(0, 6).map((category) => {
+                  let categoryParam = category.value.toLowerCase().replace(/\s+/g, '-');
+                  let extraParams = '';
+                  if (category.value === "AI") {
+                    categoryParam = "AI";
+                    extraParams = '&sortBy=newest';
+                  }
+                  return (
+                    <Link
+                      key={category.value}
+                      href={`/courses?category=${categoryParam}${extraParams}`}
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-[#0A4D7C] hover:bg-[#0A4D7C]/5 flex items-center"
+                    >
+                      <span className="mr-2 text-gray-500">{category.icon}</span>
+                      {category.label}
+                    </Link>
+                  );
+                })}
                 <Link
                   href="/categories"
                   className="block px-3 py-2 rounded-md text-base font-medium text-[#0A4D7C] hover:bg-[#0A4D7C]/5 flex items-center"
