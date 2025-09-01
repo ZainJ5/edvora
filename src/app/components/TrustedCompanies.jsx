@@ -17,7 +17,7 @@ const TrustedCompanies = () => {
     <div className="py-12 px-4 bg-white">
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="text-gray-600 text-lg mb-8 font-normal">
-          Trusted by over 17,000 companies and millions of learners around the world
+          Trusted by over 12,000 companies and millions of learners around the world
         </h2>
         
         <div className="grid grid-cols-4 gap-8 items-center justify-items-center md:grid-cols-8 md:gap-12">
