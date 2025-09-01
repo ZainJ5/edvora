@@ -420,7 +420,7 @@ const CourseContent = ({ course, isEnrolled }) => {
               )}
             </div>
             
-            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
+            {/* <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 shadow-sm">
               <h3 className="text-xl font-semibold text-gray-900 mb-5">What you'll learn</h3>
               {course.learningOutcomes && course.learningOutcomes.length > 0 ? (
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -438,7 +438,7 @@ const CourseContent = ({ course, isEnrolled }) => {
                   <p className="text-gray-500 italic">Learning outcomes for this course will be available soon.</p>
                 </div>
               )}
-            </div>
+            </div> */}
             
             <h3 className="text-xl font-semibold text-gray-900 mb-5">Course Statistics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">

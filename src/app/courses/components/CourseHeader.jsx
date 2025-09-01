@@ -32,7 +32,7 @@ const renderStars = (rating) => {
 const CourseHeader = ({ course, isEnrolled }) => {
   return (
     <div className="bg-[#f2f6fd] border-b border-gray-200">
-      <div className="container mx-auto px-4 py-6 md:py-8">
+      <div className="container mx-auto px-4 py- md:py-8">
         <div className="mb-8">
           <Link 
             href="/courses"
@@ -61,7 +61,7 @@ const CourseHeader = ({ course, isEnrolled }) => {
             
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">{course.title}</h1>
             
-            <p className="text-gray-600 text-lg mb-6 leading-relaxed">
+            <p className="text-gray-600 text-lg mb-6 leading-relaxed line-clamp-2 overflow-hidden">
               {course.description || "Enhance your skills with this comprehensive course."}
             </p>
             

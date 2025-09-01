@@ -347,7 +347,7 @@ export default function CoursesPage() {
                     <EmptyState clearAllFilters={clearAllFilters} />
                   ) : (
                     <motion.div 
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-6"
                       layout
                       transition={{ duration: 0.3 }}
                     >
