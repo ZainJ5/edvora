@@ -104,7 +104,6 @@ const ReviewsSection = () => {
         </motion.p>
 
         <div className="relative">
-          {/* Left button */}
           <button
             onClick={() => scroll("left")}
             className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 bg-white/90 backdrop-blur-md rounded-full shadow-lg p-3 transition-all duration-300 hover:bg-blue-50 ${
@@ -132,7 +131,6 @@ const ReviewsSection = () => {
             </svg>
           </button>
 
-          {/* Cards */}
           <div
             ref={scrollContainer}
             className="flex overflow-x-auto gap-6 pb-8 snap-x scroll-smooth hide-scrollbar"
@@ -193,7 +191,6 @@ const ReviewsSection = () => {
             ))}
           </div>
 
-          {/* Right button */}
           <button
             onClick={() => scroll("right")}
             className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 bg-white/90 backdrop-blur-md rounded-full shadow-lg p-3 transition-all duration-300 hover:bg-blue-50 ${
@@ -222,7 +219,6 @@ const ReviewsSection = () => {
           </button>
         </div>
 
-        {/* Indicators */}
         <div className="flex justify-center mt-10 gap-3">
           {Array.from({ length: totalSlides }).map((_, idx) => (
             <button
