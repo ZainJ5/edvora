@@ -37,7 +37,7 @@ export default function CoursesPage() {
 
   const categories = [
     { value: "Web Development", label: "Web Development" },
-    { value: "Mobile Development", label: "Mobile Development" },
+    { value: "AI", label: "AI" },
     { value: "Data Science", label: "Data Science" },
     { value: "Programming", label: "Programming" },
     { value: "Machine Learning", label: "Machine Learning" },
@@ -69,6 +69,7 @@ export default function CoursesPage() {
   const categoryColors = {
     "Web Development": "bg-blue-500",
     "Mobile Development": "bg-green-500",
+    "AI": "bg-gray-500",
     "Data Science": "bg-purple-500",
     "Machine Learning": "bg-red-500",
     "Programming": "bg-teal-500",

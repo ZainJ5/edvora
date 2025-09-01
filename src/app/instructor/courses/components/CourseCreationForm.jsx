@@ -122,6 +122,7 @@ export default function CourseCreationForm({ initialData, onSubmit, isEditing = 
   const categories = [
     { value: "Web Development", label: "Web Development" },
     { value: "Mobile Development", label: "Mobile Development" },
+    { value: "AI", label: "AI" },
     { value: "Data Science", label: "Data Science" },
     { value: "Programming", label: "Programming" },
     { value: "Machine Learning", label: "Machine Learning" },
