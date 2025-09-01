@@ -113,10 +113,12 @@ export async function PUT(request, { params }) {
     ensureDirectoryExists(resourcesDir);
     
     const updatedLecture = {
+      ...currentLecture.toObject(), 
       title: fields.title ? fields.title[0] : currentLecture.title,
       transcript: fields.transcript ? fields.transcript[0] : currentLecture.transcript || '',
       videoUrl: currentLecture.videoUrl,
-      resources: [...(currentLecture.resources || [])] 
+      thumbnail: currentLecture.thumbnail, 
+      resources: [...(currentLecture.resources || [])]
     };
     
     if (files.videoFile && files.videoFile[0]) {
@@ -130,6 +132,19 @@ export async function PUT(request, { params }) {
       updatedLecture.videoUrl = relativePath;
     } else if (fields.videoUrl && fields.videoUrl[0]) {
       updatedLecture.videoUrl = fields.videoUrl[0];
+    }
+    
+    if (files.thumbnailFile && files.thumbnailFile[0]) {
+      const thumbnailFile = files.thumbnailFile[0];
+      const uniqueFilename = generateUniqueFilename(thumbnailFile.name);
+      const thumbnailPath = path.join(lecturesDir, uniqueFilename);
+      
+      await saveFile(thumbnailFile, thumbnailPath);
+      
+      const relativePath = `/lectures/${courseId}/${uniqueFilename}`;
+      updatedLecture.thumbnail = relativePath;
+    } else if (fields.thumbnail && fields.thumbnail[0]) {
+      updatedLecture.thumbnail = fields.thumbnail[0];
     }
     
     if (fields.resourcesData && fields.resourcesData[0]) {
@@ -210,6 +225,12 @@ export async function PUT(request, { params }) {
       }, { status: 400 });
     }
     
+    if (!updatedLecture.thumbnail) {
+      return NextResponse.json({ 
+        error: 'Thumbnail is required' 
+      }, { status: 400 });
+    }
+    
     course.lectures[lectureIndex] = updatedLecture;
     await course.save();
     
@@ -250,7 +271,6 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Lecture not found' }, { status: 404 });
     }
     
-    // Optional: Delete the physical files associated with this lecture
     course.lectures.splice(lectureIndex, 1);
     await course.save();
     
