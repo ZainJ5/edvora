@@ -18,7 +18,6 @@ export default function AILearning({ course, currentLecture }) {
   const [currentSegment, setCurrentSegment] = useState(0);
   const scriptSegmentsRef = useRef([]);
   
-  // Initialize avatar and audio context
   useEffect(() => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)({
@@ -52,7 +51,6 @@ export default function AILearning({ course, currentLecture }) {
           
           headRef.current = head;
           
-          // Auto-generate script when avatar is ready
           if (currentLecture) {
             generateTeachingScript();
           }
@@ -87,7 +85,6 @@ export default function AILearning({ course, currentLecture }) {
   }, [teachingScript]);
 
   const prepareScriptSegments = () => {
-    // Split script into natural segments (sentences or paragraphs)
     const segments = teachingScript
       .split(/(?<=[.!?])\s+/)
       .filter(segment => segment.trim().length > 0)
@@ -213,7 +210,6 @@ export default function AILearning({ course, currentLecture }) {
         throw new Error('No audio data received');
       }
 
-      // Convert base64 to ArrayBuffer
       const binaryString = atob(base64Audio);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
@@ -259,7 +255,6 @@ export default function AILearning({ course, currentLecture }) {
         }
       });
       
-      // Progress update interval
       const totalDuration = audioBuffer.duration;
       let startTime = Date.now();
       const progressInterval = setInterval(() => {
@@ -303,12 +298,9 @@ export default function AILearning({ course, currentLecture }) {
   const handlePlayPause = async () => {
     if (isPlaying) {
       setIsPlaying(false);
-      // Implement pause functionality here
-      // This would require deeper integration with the TalkingHead API
     } else {
       if (scriptSegmentsRef.current.length === 0) return;
       
-      // Reset progress if we're starting from beginning
       if (currentSegment === 0 || currentSegment >= scriptSegmentsRef.current.length) {
         setCurrentSegment(0);
         setProgress(0);
@@ -323,7 +315,6 @@ export default function AILearning({ course, currentLecture }) {
         setCurrentSegment(index);
         const success = await speakSegment(scriptSegmentsRef.current[index]);
         if (success && index + 1 < scriptSegmentsRef.current.length) {
-          // Small pause between segments
           setTimeout(() => speakNext(index + 1), 500);
         } else {
           setIsPlaying(false);
@@ -342,10 +333,7 @@ export default function AILearning({ course, currentLecture }) {
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    // Implement actual muting logic with the TalkingHead API
     if (headRef.current) {
-      // This is a placeholder - the actual implementation would depend on the TalkingHead API
-      // headRef.current.setVolume(isMuted ? 1.0 : 0.0);
     }
   };
 
