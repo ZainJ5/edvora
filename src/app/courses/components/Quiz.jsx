@@ -264,7 +264,7 @@ const Quiz = ({ quiz, onComplete, onBack }) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-3xl mx-auto p-8 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-3xl mx-auto border border-gray-100">
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0A4D7C]"></div>
           <h3 className="text-xl font-semibold text-[#0A4D7C]">Preparing Your Quiz</h3>
@@ -278,7 +278,7 @@ const Quiz = ({ quiz, onComplete, onBack }) => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-3xl mx-auto p-8 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="bg-red-50 p-4 rounded-full">
             <FaExclamationCircle className="text-red-500 text-3xl" />

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Upload, File, FilePlus, AlertCircle } from 'lucide-react';
+import { X, Upload, File, FilePlus, AlertCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LectureForm({ onSubmit, onCancel, initialData = null }) {
@@ -21,6 +21,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
   });
   const [resourceFile, setResourceFile] = useState(null);
   const [error, setError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -133,6 +134,9 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
       return;
     }
     
+    // Set uploading flag to true to prevent multiple submissions
+    setIsUploading(true);
+    
     const formData = new FormData();
     formData.append('title', lectureData.title);
     
@@ -165,6 +169,9 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
       await onSubmit(formData);
     } catch (error) {
       toast.error(error.message || 'Failed to save lecture');
+    } finally {
+      // Reset uploading flag regardless of success or failure
+      setIsUploading(false);
     }
   };
 
@@ -204,6 +211,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
           onClick={onCancel}
           className="text-white hover:bg-blue-800 p-2 rounded-full transition-colors cursor-pointer"
           aria-label="Close"
+          disabled={isUploading}
         >
           <X size={20} />
         </button>
@@ -225,6 +233,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                 className="block w-full px-4 py-3 border border-gray-300 text-black rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
                 placeholder="Enter a descriptive title for your lecture"
                 required
+                disabled={isUploading}
               />
             </div>
             
@@ -236,7 +245,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                 <div className="space-y-2 text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="flex text-sm text-gray-600">
-                    <label htmlFor="videoFile" className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                    <label htmlFor="videoFile" className={`relative rounded-md font-medium text-blue-600 hover:text-blue-500 ${isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
                       <span>Upload a video file</span>
                       <input 
                         id="videoFile" 
@@ -246,6 +255,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                         className="sr-only" 
                         onChange={handleVideoChange}
                         required={!lectureData.videoUrl}
+                        disabled={isUploading}
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>
@@ -279,7 +289,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                   <div className="space-y-2 text-center">
                     <Upload className="mx-auto h-10 w-10 text-gray-400" />
                     <div className="flex text-sm text-gray-600">
-                      <label htmlFor="thumbnailFile" className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                      <label htmlFor="thumbnailFile" className={`relative rounded-md font-medium text-blue-600 hover:text-blue-500 ${isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
                         <span>Upload a thumbnail</span>
                         <input 
                           id="thumbnailFile" 
@@ -288,6 +298,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                           accept="image/*"
                           className="sr-only" 
                           onChange={handleThumbnailChange}
+                          disabled={isUploading}
                         />
                       </label>
                     </div>
@@ -355,6 +366,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                           onClick={() => removeResource(index)}
                           className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-full transition-colors"
                           aria-label="Remove resource"
+                          disabled={isUploading}
                         >
                           <X size={16} />
                         </button>
@@ -385,6 +397,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                       onChange={handleResourceChange}
                       className="block w-full px-3 py-2 border border-gray-300 text-black rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       placeholder="E.g., Exercise Files, Lecture Notes"
+                      disabled={isUploading}
                     />
                   </div>
                   
@@ -396,7 +409,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                       <div className="space-y-1 text-center">
                         <FilePlus className="mx-auto h-8 w-8 text-gray-400" />
                         <div className="flex text-sm text-gray-600">
-                          <label htmlFor="resourceFile" className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                          <label htmlFor="resourceFile" className={`relative rounded-md font-medium text-blue-600 hover:text-blue-500 ${isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
                             <span>Upload a file</span>
                             <input 
                               id="resourceFile" 
@@ -404,6 +417,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                               type="file"
                               className="sr-only" 
                               onChange={handleResourceFileChange}
+                              disabled={isUploading}
                             />
                           </label>
                         </div>
@@ -424,6 +438,7 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                       value={resourceData.fileType}
                       onChange={handleResourceChange}
                       className="block w-full px-3 py-2 border border-gray-300 text-black rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      disabled={isUploading}
                     >
                       <option value="pdf">PDF</option>
                       <option value="doc">Document</option>
@@ -436,9 +451,10 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
                   <motion.button
                     type="button"
                     onClick={addResource}
-                    className="inline-flex items-center justify-center w-full px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors cursor-pointer shadow-sm"
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
+                    className={`inline-flex items-center justify-center w-full px-4 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors shadow-sm ${isUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                    whileHover={{ scale: isUploading ? 1 : 1.01 }}
+                    whileTap={{ scale: isUploading ? 1 : 0.99 }}
+                    disabled={isUploading}
                   >
                     <FilePlus size={16} className="mr-1.5" />
                     Add Resource
@@ -452,19 +468,28 @@ export default function LectureForm({ onSubmit, onCancel, initialData = null }) 
             <motion.button
               type="button"
               onClick={onCancel}
-              className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 transition-colors cursor-pointer"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
+              className={`inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 transition-colors ${isUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+              whileHover={{ scale: isUploading ? 1 : 1.01 }}
+              whileTap={{ scale: isUploading ? 1 : 0.98 }}
+              disabled={isUploading}
             >
               Cancel
             </motion.button>
             <motion.button
               type="submit"
-              className="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors cursor-pointer shadow-md"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
+              className={`inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition-colors shadow-md ${isUploading ? 'opacity-80 cursor-not-allowed' : 'hover:bg-blue-700 cursor-pointer'}`}
+              whileHover={{ scale: isUploading ? 1 : 1.01 }}
+              whileTap={{ scale: isUploading ? 1 : 0.98 }}
+              disabled={isUploading}
             >
-              {initialData ? 'Update Lecture' : 'Add Lecture'}
+              {isUploading ? (
+                <>
+                  <Loader2 size={18} className="mr-2 animate-spin" />
+                  {initialData ? 'Updating...' : 'Uploading...'}
+                </>
+              ) : (
+                initialData ? 'Update Lecture' : 'Add Lecture'
+              )}
             </motion.button>
           </div>
         </form>

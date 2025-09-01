@@ -204,7 +204,6 @@ const InstructorChat = ({ courseId, lectureId, course }) => {
 
   return (
     <div className="w-full h-96 flex flex-col rounded-lg border border-gray-200 overflow-hidden">
-      {/* Header - Simple with just the name */}
       <div className="bg-gray-50 p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-gray-700">
@@ -213,7 +212,6 @@ const InstructorChat = ({ courseId, lectureId, course }) => {
         </div>
       </div>
       
-      {/* Messages - Clean and simple */}
       <div className="flex-1 overflow-y-auto p-4 bg-white">
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center text-center">

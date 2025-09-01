@@ -29,7 +29,6 @@ import {
   FaExclamationCircle,
   FaPaperPlane,
   FaRegUser,
-  FaArtificial
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
@@ -66,7 +65,7 @@ const CourseLearn = () => {
   
   const videoRef = useRef(null);
   const progressUpdateTimeoutRef = useRef(null);
-  const courseCompletionThreshold = 95;
+  const courseCompletionThreshold = 100;
 
   useEffect(() => {
     return () => {
@@ -95,13 +94,7 @@ const CourseLearn = () => {
         completedLectures.includes(lecture._id)
       );
       
-      const allQuizzesCompleted = course?.lectures?.every(lecture => 
-        !lecture.quizzes?.length || lecture.quizzes.every(quizId => 
-          completedQuizzes.includes(quizId)
-        )
-      );
-      
-      if (allLecturesCompleted && allQuizzesCompleted && !showCourseCompletionModal) {
+      if (allLecturesCompleted && !showCourseCompletionModal) {
         setShowCourseCompletionModal(true);
       }
     }
@@ -137,15 +130,12 @@ const CourseLearn = () => {
     if (!course || !course.lectures) return;
     
     const totalLectures = course.lectures.length;
-    const totalQuizzes = course.lectures.reduce((count, lecture) => 
-      count + (lecture.quizzes && lecture.quizzes.length > 0 ? 1 : 0), 0);
     
-    const totalItems = totalLectures + totalQuizzes || 1; 
+    const totalItems = totalLectures || 1; 
     
     const validCompletedLectures = completedLectures.filter(id => id);
-    const validCompletedQuizzes = completedQuizzes.filter(id => id);
     
-    const completedItems = validCompletedLectures.length + validCompletedQuizzes.length;
+    const completedItems = validCompletedLectures.length;
     const progressPercentage = (completedItems / totalItems) * 100;
     
     const newProgress = Math.min(Math.round(progressPercentage), 100);
@@ -156,7 +146,7 @@ const CourseLearn = () => {
     }
     
     progressUpdateTimeoutRef.current = setTimeout(() => {
-      updateProgressOnServer(validCompletedLectures, validCompletedQuizzes, newProgress);
+      updateProgressOnServer(validCompletedLectures, [], newProgress);
     }, 1000);
   };
 
@@ -243,15 +233,6 @@ const CourseLearn = () => {
       if (!completedLectures.includes(prevLectureId)) {
         toast.error("Please complete the previous lecture first");
         return;
-      }
-      
-      const prevLecture = course.lectures[index-1];
-      if (prevLecture.quizzes && prevLecture.quizzes.length > 0) {
-        const quizId = prevLecture.quizzes[0];
-        if (!completedQuizzes.includes(quizId)) {
-          toast.error("Please complete the quiz for the previous lecture");
-          return;
-        }
       }
     }
     
@@ -371,7 +352,7 @@ const CourseLearn = () => {
     doc.text(`${course.title}`, 105, 115, { align: 'center' });
     
     doc.setFontSize(12);
-    doc.setTextColor(255, 165, 0); 
+    doc.setTextColor(10, 77, 124); 
     doc.text(`Issued on: ${new Date().toLocaleDateString()}`, 105, 140, { align: 'center' });    
     doc.setDrawColor(10, 77, 124); 
     doc.setLineWidth(1);
@@ -400,11 +381,9 @@ const CourseLearn = () => {
       let progressValue = currentProgress;
       if (progressValue === null && course && course.lectures) {
         const totalLectures = course.lectures.length;
-        const totalQuizzes = course.lectures.reduce((count, lecture) => 
-          count + (lecture.quizzes && lecture.quizzes.length > 0 ? 1 : 0), 0);
         
-        const totalItems = totalLectures + totalQuizzes || 1;
-        const completedItems = validLectureIds.length + validQuizIds.length;
+        const totalItems = totalLectures || 1;
+        const completedItems = validLectureIds.length;
         progressValue = Math.min(Math.round((completedItems / totalItems) * 100), 100);
       }
       
@@ -440,15 +419,6 @@ const CourseLearn = () => {
         return;
       }
       
-      const currentLect = currentLecture;
-      if (currentLect.quizzes && currentLect.quizzes.length > 0) {
-        const quizId = currentLect.quizzes[0];
-        if (!completedQuizzes.includes(quizId)) {
-          toast.error("Please complete the quiz for this lecture first");
-          return;
-        }
-      }
-      
       setCurrentLectureIndex(currentLectureIndex + 1);
       setActiveTab('video');
       setVideoCompleted(completedLectures.includes(course.lectures[currentLectureIndex + 1]._id));
@@ -476,7 +446,7 @@ const CourseLearn = () => {
 
   if (authLoading || loading || checkingEnrollment) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="relative h-16 w-16 mx-auto">
             <div className="absolute inset-0 rounded-full border-t-4 border-[#0A4D7C] animate-spin"></div>
@@ -490,7 +460,7 @@ const CourseLearn = () => {
               />
             </div>
           </div>
-          <p className="mt-4 text-[#0A4D7C] font-medium">Loading Courses...</p>
+          <p className="mt-4 text-black font-medium">Loading Courses...</p>
         </div>
       </div>
     );
@@ -507,7 +477,7 @@ const CourseLearn = () => {
               <div className="bg-red-100 p-2 rounded-full">
                 <FaExclamationCircle className="h-6 w-6 text-red-600" />
               </div>
-              <h3 className="ml-3 text-lg font-semibold text-gray-800">Error</h3>
+              <h3 className="ml-3 text-lg font-semibold text-black">Error</h3>
             </div>
             <p className="mt-4 text-gray-600">Course not found</p>
           </div>
@@ -532,12 +502,12 @@ const CourseLearn = () => {
 
   if (!isEnrolled) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full border border-gray-200">
-          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-[#FFA500]/10">
-            <FaLock className="w-8 h-8 text-[#FFA500]" />
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100">
+            <FaLock className="w-8 h-8 text-[#0A4D7C]" />
           </div>
-          <h1 className="text-2xl font-bold text-center text-[#0A4D7C] mb-2">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-center text-black mb-2">Access Denied</h1>
           <p className="text-gray-600 text-center mb-6">You are not enrolled in this course. Please enroll to access the content.</p>
           <button 
             onClick={() => router.push('/courses')}
@@ -559,46 +529,34 @@ const CourseLearn = () => {
 
   return (
     <>
-      <div className="flex flex-col h-screen text-gray-800 bg-gray-50">
+      <div className="flex flex-col min-h-screen text-gray-800 bg-white">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center">
             <button 
               onClick={() => router.push('/courses')}
-              className="mr-4 text-[#0A4D7C] hover:text-[#083d63] transition-colors duration-300 rounded-full p-2 hover:bg-gray-100"
+              className="mr-4 text-gray-600 hover:text-black transition-colors duration-300 rounded-full p-2 hover:bg-gray-100"
             >
               <FaArrowLeft className="text-lg" />
             </button>
             <div>
-              <h1 className="text-xl font-semibold text-[#0A4D7C] tracking-tight">{course.title}</h1>
+              <h1 className="text-xl font-semibold text-black tracking-tight">{course.title}</h1>
               <p className="text-sm text-gray-500">Lecture {currentLectureIndex + 1} of {course.lectures.length}</p>
             </div>
           </div>
           
           <div className="hidden md:flex items-center space-x-6">
-            <div className="flex items-center">
-              {progress >= 100 ? (
-                <div className="flex items-center text-[#FFA500]">
-                  <FaTrophy className="text-[#FFA500] mr-2" />
-                  <span className="font-medium">Course Completed!</span>
-                </div>
-              ) : (
-                <>
-                  <div className="w-48 bg-gray-200 h-3 rounded-full overflow-hidden shadow-inner">
-                    <div 
-                      className="h-full rounded-full bg-[#FFA500] transition-all duration-500 ease-in-out"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-600 ml-3">{progress}% complete</span>
-                </>
-              )}
-            </div>
+            {progress >= 100 ? (
+              <div className="flex items-center text-green-500">
+                <FaTrophy className="text-green-500 mr-2" />
+                <span className="font-medium">Course Completed!</span>
+              </div>
+            ) : null}
             
             {progress >= courseCompletionThreshold && (
               <button
                 onClick={() => setShowCourseCompletionModal(true)}
-                className="flex items-center px-4 py-2 bg-[#FFA500] text-white rounded-lg hover:bg-[#e69500] transition-all duration-300 font-medium text-sm shadow-md"
+                className="flex items-center px-4 py-2 bg-[#0A4D7C] text-white rounded-lg hover:bg-[#083d63] transition-all duration-300 font-medium text-sm shadow-md"
               >
                 <FaCertificate className="mr-2" /> Get Certificate
               </button>
@@ -606,7 +564,7 @@ const CourseLearn = () => {
             
             <button 
               onClick={() => setShowSidebar(!showSidebar)}
-              className="p-2 text-[#0A4D7C] hover:bg-gray-100 rounded-md transition-all duration-300"
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-all duration-300"
               aria-label="Toggle course content"
             >
               {showSidebar ? <FaTimes /> : <FaListUl />}
@@ -614,15 +572,9 @@ const CourseLearn = () => {
           </div>
           
           <div className="flex md:hidden items-center space-x-3">
-            <div className="w-20 bg-gray-200 h-2 rounded-full overflow-hidden">
-              <div 
-                className="h-full rounded-full bg-[#FFA500]"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
             <button 
               onClick={() => setShowSidebarMobile(!showSidebarMobile)}
-              className="p-2 text-[#0A4D7C] hover:bg-gray-100 rounded-md"
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-md"
               aria-label="Menu"
             >
               <FaBars />
@@ -630,13 +582,13 @@ const CourseLearn = () => {
           </div>
         </div>
         
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex">
           {/* Mobile Sidebar */}
           {showSidebarMobile && (
             <div className="fixed inset-0 bg-black bg-opacity-60 z-30 md:hidden backdrop-blur-sm transition-all duration-300">
               <div className="absolute right-0 top-0 h-full w-4/5 max-w-xs bg-white shadow-2xl transform transition-transform duration-300">
                 <div className="p-4 flex justify-between items-center border-b border-gray-200">
-                  <h2 className="font-semibold text-[#0A4D7C]">Course Content</h2>
+                  <h2 className="font-semibold text-black">Course Content</h2>
                   <button 
                     onClick={() => setShowSidebarMobile(false)}
                     className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"
@@ -648,12 +600,12 @@ const CourseLearn = () => {
                 
                 <div className="p-4 bg-gray-50 border-b border-gray-200">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-[#0A4D7C]">Your Progress</span>
-                    <span className="text-sm font-medium text-[#FFA500]">{progress}%</span>
+                    <span className="text-sm font-medium text-black">Your Progress</span>
+                    <span className="text-sm font-medium text-[#0A4D7C]">{progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                     <div 
-                      className="h-full rounded-full bg-[#FFA500]"
+                      className="h-full rounded-full bg-[#0A4D7C]"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
@@ -667,10 +619,7 @@ const CourseLearn = () => {
                     const lectureQuizId = hasLectureQuiz ? lecture.quizzes[0] : null;
                     const isQuizDone = hasLectureQuiz ? completedQuizzes.includes(lectureQuizId) : true;
                     const isLocked = index > 0 && 
-                      (!completedLectures.includes(course.lectures[index-1]._id) || 
-                      (course.lectures[index-1].quizzes && 
-                       course.lectures[index-1].quizzes.length > 0 && 
-                       !completedQuizzes.includes(course.lectures[index-1].quizzes[0])));
+                      (!completedLectures.includes(course.lectures[index-1]._id));
                     
                     return (
                       <div 
@@ -678,14 +627,14 @@ const CourseLearn = () => {
                         onClick={() => !isLocked && handleLectureClick(index)}
                         className={`px-4 py-3 border-b border-gray-200 cursor-pointer transition-all duration-300 ${
                           isLocked ? 'opacity-60 cursor-not-allowed bg-gray-50' : 
-                          currentLectureIndex === index ? 'bg-[#0A4D7C] text-white' : 'hover:bg-[#0A4D7C]/10'
+                          currentLectureIndex === index ? 'bg-[#0A4D7C] text-white' : 'hover:bg-gray-100'
                         }`}
                       >
                         <div className="flex items-center">
                           <div className="mr-3 flex-shrink-0">
                             {isCompleted ? (
-                              <div className="w-6 h-6 rounded-full bg-[#FFA500]/20 flex items-center justify-center">
-                                <FaRegCheckCircle className="text-[#FFA500] text-sm" />
+                              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                                <FaRegCheckCircle className="text-green-500 text-sm" />
                               </div>
                             ) : isLocked ? (
                               <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
@@ -699,7 +648,7 @@ const CourseLearn = () => {
                           </div>
                           <div className="flex-1">
                             <p className={`text-sm font-medium ${
-                              isLocked ? 'text-gray-400' : currentLectureIndex === index ? 'text-white' : 'text-gray-700'
+                              isLocked ? 'text-gray-400' : currentLectureIndex === index ? 'text-white' : 'text-black'
                             }`}>
                               {lecture.title}
                             </p>
@@ -709,7 +658,7 @@ const CourseLearn = () => {
                               {hasLectureQuiz && (
                                 <span className="ml-2 flex items-center">
                                   • <FaQuestionCircle className="mx-1 text-xs" /> Quiz 
-                                  {isQuizDone && <FaCheckCircle className="ml-1 text-[#FFA500] text-xs" />}
+                                  {isQuizDone && <FaCheckCircle className="ml-1 text-green-500 text-xs" />}
                                 </span>
                               )}
                             </p>
@@ -727,7 +676,7 @@ const CourseLearn = () => {
           {showSidebar && (
             <div className="hidden md:block w-80 border-r border-gray-200 bg-white overflow-y-auto shadow-md">
               <div className="p-5 border-b border-gray-200">
-                <h2 className="font-semibold text-[#0A4D7C] text-lg">Course Content</h2>
+                <h2 className="font-semibold text-black text-lg">Course Content</h2>
                 <div className="mt-3 flex items-center text-sm">
                   <FaPlayCircle className="text-gray-500 mr-2" />
                   <span className="text-gray-500">{course.lectures.length} lectures</span>
@@ -737,12 +686,12 @@ const CourseLearn = () => {
                 
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-[#0A4D7C]">Your Progress</span>
-                    <span className="text-sm font-medium text-[#FFA500]">{progress}%</span>
+                    <span className="text-sm font-medium text-black">Your Progress</span>
+                    <span className="text-sm font-medium text-[#0A4D7C]">{progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                     <div 
-                      className="h-full rounded-full bg-[#FFA500]"
+                      className="h-full rounded-full bg-[#0A4D7C]"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
@@ -757,10 +706,7 @@ const CourseLearn = () => {
                   const lectureQuizId = hasLectureQuiz ? lecture.quizzes[0] : null;
                   const isQuizDone = hasLectureQuiz ? completedQuizzes.includes(lectureQuizId) : true;
                   const isLocked = index > 0 && 
-                    (!completedLectures.includes(course.lectures[index-1]._id) || 
-                    (course.lectures[index-1].quizzes && 
-                     course.lectures[index-1].quizzes.length > 0 && 
-                     !completedQuizzes.includes(course.lectures[index-1].quizzes[0])));
+                    (!completedLectures.includes(course.lectures[index-1]._id));
                   
                   return (
                     <div 
@@ -768,13 +714,13 @@ const CourseLearn = () => {
                       onClick={() => !isLocked && handleLectureClick(index)}
                       className={`px-5 py-3 border-b border-gray-200 cursor-pointer transition-all duration-300 ${
                         isLocked ? 'opacity-70 cursor-not-allowed' : ''
-                      } ${currentLectureIndex === index ? 'bg-[#0A4D7C] text-white' : 'text-gray-700 hover:bg-[#0A4D7C]/10'}`}
+                      } ${currentLectureIndex === index ? 'bg-[#0A4D7C] text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                     >
                       <div className="flex items-center">
                         <div className="flex-shrink-0 mr-3">
                           {isCompleted ? (
-                            <div className="w-7 h-7 rounded-full bg-[#FFA500]/20 flex items-center justify-center">
-                              <FaCheckCircle className="text-[#FFA500]" />
+                            <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+                              <FaCheckCircle className="text-green-500" />
                             </div>
                           ) : isLocked ? (
                             <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
@@ -787,7 +733,7 @@ const CourseLearn = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className={`font-medium ${isLocked ? 'text-gray-400' : currentLectureIndex === index ? 'text-white' : 'text-gray-700'}`}>
+                          <p className={`font-medium ${isLocked ? 'text-gray-400' : currentLectureIndex === index ? 'text-white' : 'text-black'}`}>
                             {lecture.title}
                           </p>
                           <div className={`flex items-center mt-1 text-xs ${currentLectureIndex === index ? 'text-gray-200' : 'text-gray-500'}`}>
@@ -798,7 +744,7 @@ const CourseLearn = () => {
                               <span className="ml-3 flex items-center">
                                 <FaQuestionCircle className="mr-1" />
                                 <span>Quiz</span>
-                                {isQuizDone && <FaCheckCircle className="ml-1 text-[#FFA500]" />}
+                                {isQuizDone && <FaCheckCircle className="ml-1 text-green-500" />}
                               </span>
                             )}
                           </div>
@@ -818,7 +764,7 @@ const CourseLearn = () => {
           )}
           
           {/* Main Content Area */}
-          <div className="flex-1 overflow-y-auto pb-16 bg-gray-50">
+          <div className="flex-1 pb-16">
             {currentLecture && (
               <div className="flex flex-col h-full">
                 {/* Video Container */}
@@ -836,7 +782,7 @@ const CourseLearn = () => {
                     </div>
                   )}
                   {activeTab === 'aiLearning' && (
-                    <div className="w-full aspect-video bg-gradient-to-b from-[#0A4D7C]/10 to-white flex items-center justify-center">
+                    <div className="w-full aspect-video bg-gradient-to-b from-gray-100 to-white flex items-center justify-center">
                       <AILearning course={course} currentLecture={currentLecture} />
                     </div>
                   )}
@@ -844,19 +790,19 @@ const CourseLearn = () => {
                 
                 <div className="px-4 md:px-8 py-6 max-w-5xl mx-auto w-full">
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-[#0A4D7C]">{currentLecture.title}</h2>
+                    <h2 className="text-2xl font-bold text-black">{currentLecture.title}</h2>
                     <p className="text-sm text-gray-500 mt-1">Lecture {currentLectureIndex + 1} of {course.lectures.length}</p>
                   </div>
                   
                   {/* Status Bar */}
                   <div className="mb-8">
                     {isLectureCompleted ? (
-                      <div className="bg-[#0A4D7C]/5 border border-[#0A4D7C]/20 rounded-lg p-5 flex items-center shadow-sm">
-                        <div className="bg-[#FFA500]/10 p-3 rounded-full mr-4">
-                          <FaCheckCircle className="text-[#FFA500] text-2xl" />
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 flex items-center shadow-sm">
+                        <div className="bg-green-100 p-3 rounded-full mr-4">
+                          <FaCheckCircle className="text-green-500 text-2xl" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-[#0A4D7C] text-lg">
+                          <h3 className="font-semibold text-black text-lg">
                             Lecture Completed
                           </h3>
                           <p className="text-gray-600 mt-1">
@@ -868,21 +814,21 @@ const CourseLearn = () => {
                         {hasQuiz && !isQuizCompleted && (
                           <button
                             onClick={() => setActiveTab('quiz')}
-                            className="px-5 py-3 bg-[#FFA500] text-white rounded-lg hover:bg-[#e69500] transition-colors duration-300 font-medium whitespace-nowrap ml-4 shadow-md"
+                            className="px-5 py-3 bg-[#0A4D7C] text-white rounded-lg hover:bg-[#083d63] transition-colors duration-300 font-medium whitespace-nowrap ml-4 shadow-md"
                           >
                             <FaQuestionCircle className="inline mr-2" /> Take Quiz
                           </button>
                         )}
                       </div>
                     ) : (
-                      <div className="bg-[#0A4D7C]/5 border border-[#0A4D7C]/20 rounded-lg p-5 shadow-sm">
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <div className="bg-[#FFA500]/10 p-3 rounded-full mr-4">
-                              <FaBookmark className="text-[#FFA500] text-2xl" />
+                            <div className="bg-gray-100 p-3 rounded-full mr-4">
+                              <FaBookmark className="text-[#0A4D7C] text-2xl" />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-[#0A4D7C] text-lg">
+                              <h3 className="font-semibold text-black text-lg">
                                 Mark This Lecture as Complete
                               </h3>
                               <p className="text-gray-600 mt-1">
@@ -920,7 +866,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('video')}
                         className={`px-1 py-3 text-md font-medium border-b-2 transition-colors duration-300 ${
                           activeTab === 'video'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -930,7 +876,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('aiLearning')}
                         className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
                           activeTab === 'aiLearning'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -940,7 +886,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('summary')}
                         className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
                           activeTab === 'summary'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -950,7 +896,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('notes')}
                         className={`px-1 py-3 text-md font-medium border-b-2 transition-colors duration-300 ${
                           activeTab === 'notes'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -960,7 +906,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('resources')}
                         className={`px-1 py-3 text-md font-medium border-b-2 transition-colors duration-300 ${
                           activeTab === 'resources'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -970,7 +916,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('chat')}
                         className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
                           activeTab === 'chat'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -980,7 +926,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('questions')}
                         className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
                           activeTab === 'questions'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -990,7 +936,7 @@ const CourseLearn = () => {
                         onClick={() => setActiveTab('quiz')}
                         className={`px-1 py-3 text-md font-medium border-b-2 flex items-center transition-colors duration-300 ${
                           activeTab === 'quiz'
-                            ? 'border-[#FFA500] text-[#FFA500]'
+                            ? 'border-[#0A4D7C] text-[#0A4D7C]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                         }`}
                       >
@@ -1005,7 +951,7 @@ const CourseLearn = () => {
                       <div className="prose max-w-none text-gray-700">
                         {currentLecture.transcript && (
                           <div className="mt-4">
-                            <h4 className="text-lg font-medium text-[#0A4D7C] mb-3">Lecture Transcript</h4>
+                            <h4 className="text-lg font-medium text-black mb-3">Lecture Transcript</h4>
                             <div className="mt-2 p-4 bg-gray-50 rounded-lg text-gray-600 max-h-96 overflow-y-auto border border-gray-200 shadow-inner">
                               {currentLecture.transcript}
                             </div>
@@ -1050,17 +996,17 @@ const CourseLearn = () => {
                     )}
                     
                     {activeTab === 'summary' && (
-                      <div className="bg-[#0A4D7C]/5 border border-[#0A4D7C]/10 rounded-lg p-5">
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
                         <div className="flex items-center mb-4">
-                          <div className="bg-[#FFA500]/10 p-2 rounded-full">
-                            <FaRobot className="text-[#FFA500] text-xl" />
+                          <div className="bg-gray-100 p-2 rounded-full">
+                            <FaRobot className="text-[#0A4D7C] text-xl" />
                           </div>
-                          <h3 className="text-xl font-semibold text-[#0A4D7C] ml-3">AI-Generated Summary</h3>
+                          <h3 className="text-xl font-semibold text-black ml-3">AI-Generated Summary</h3>
                         </div>
                         
                         {currentLecture.aiSummary ? (
                           <div className="bg-white rounded-lg p-5 shadow-inner border border-gray-200">
-                            <h4 className="font-medium text-[#0A4D7C] mb-3 text-lg">Key Points:</h4>
+                            <h4 className="font-medium text-black mb-3 text-lg">Key Points:</h4>
                             <p className="text-gray-600 leading-relaxed">{currentLecture.aiSummary}</p>
                           </div>
                         ) : (
@@ -1129,7 +1075,7 @@ const CourseLearn = () => {
                     
                     {activeTab === 'resources' && (
                       <div>
-                        <h3 className="text-xl font-semibold text-[#0A4D7C] mb-4">Lecture Resources</h3>
+                        <h3 className="text-xl font-semibold text-black mb-4">Lecture Resources</h3>
                         {currentLecture.resources && currentLecture.resources.length > 0 ? (
                           <div className="grid gap-4">
                             {currentLecture.resources.map((resource, index) => (
@@ -1137,11 +1083,11 @@ const CourseLearn = () => {
                                 key={index}
                                 className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-300 shadow-sm"
                               >
-                                <div className="bg-gray-50 p-3 rounded-lg mr-4 text-[#FFA500]">
+                                <div className="bg-gray-50 p-3 rounded-lg mr-4 text-[#0A4D7C]">
                                   {resource.fileType === 'pdf' ? <FaFilePdf className="text-2xl" /> : <FaFileAlt className="text-2xl" />}
                                 </div>
                                 <div className="flex-1">
-                                  <p className="font-medium text-gray-700">{resource.title}</p>
+                                  <p className="font-medium text-black">{resource.title}</p>
                                   <p className="text-sm text-gray-500 mt-1">
                                     {resource.fileType.toUpperCase()} • {resource.fileSize || '2.5 MB'}
                                   </p>
@@ -1198,12 +1144,12 @@ const CourseLearn = () => {
                     {activeTab === 'quiz' && (
                       <>
                         {!isLectureCompleted ? (
-                          <div className="bg-[#FFA500]/5 border border-[#FFA500]/20 rounded-lg p-5 flex items-center shadow-sm">
-                            <div className="bg-[#0A4D7C]/10 p-3 rounded-full mr-4">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-5 flex items-center shadow-sm">
+                            <div className="bg-gray-100 p-3 rounded-full mr-4">
                               <FaExclamationCircle className="text-[#0A4D7C] text-2xl" />
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-semibold text-[#0A4D7C] text-lg">
+                              <h3 className="font-semibold text-black text-lg">
                                 Complete Lecture First
                               </h3>
                               <p className="text-gray-600 mt-1">
@@ -1266,9 +1212,9 @@ const CourseLearn = () => {
                     </button>
                     <button
                       onClick={handleNextLecture}
-                      disabled={currentLectureIndex === course.lectures.length - 1 || !isLectureCompleted || (hasQuiz && !isQuizCompleted)}
+                      disabled={currentLectureIndex === course.lectures.length - 1 || !isLectureCompleted}
                       className={`flex items-center px-5 py-3 rounded-lg transition-colors duration-300 ${
-                        currentLectureIndex === course.lectures.length - 1 || !isLectureCompleted || (hasQuiz && !isQuizCompleted)
+                        currentLectureIndex === course.lectures.length - 1 || !isLectureCompleted
                           ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
                           : 'text-white bg-[#0A4D7C] hover:bg-[#083d63] shadow-md'
                       }`}
@@ -1289,10 +1235,10 @@ const CourseLearn = () => {
       <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
         <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg p-6 md:p-8 transform transition-all duration-300">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#FFA500]/10 mb-5">
-              <FaTrophy className="text-4xl text-[#FFA500]" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-5">
+              <FaTrophy className="text-4xl text-[#0A4D7C]" />
             </div>
-            <h2 className="text-2xl font-bold text-[#0A4D7C]">Congratulations!</h2>
+            <h2 className="text-2xl font-bold text-black">Congratulations!</h2>
             <p className="text-gray-600 mt-2">
               You've successfully completed the course "{course.title}"
             </p>
@@ -1300,17 +1246,17 @@ const CourseLearn = () => {
           
           <div className="bg-gray-50 rounded-lg p-5 mb-6 border border-gray-200 shadow-inner">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-[#0A4D7C] font-medium">Your Achievement</span>
-              <span className="text-[#FFA500] font-bold">{progress}% Complete</span>
+              <span className="text-black font-medium">Your Achievement</span>
+              <span className="text-[#0A4D7C] font-bold">{progress}% Complete</span>
             </div>
             <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-4">
               <div 
-                className="h-full rounded-full bg-[#FFA500]"
+                className="h-full rounded-full bg-[#0A4D7C]"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
             <p className="text-sm text-gray-600">
-              You've completed {completedLectures.length} lectures and {completedQuizzes.length} quizzes.
+              You've completed {completedLectures.length} lectures.
             </p>
           </div>
           
@@ -1333,7 +1279,7 @@ const CourseLearn = () => {
           <div className="text-center">
             <button
               onClick={() => setShowCourseCompletionModal(false)}
-              className="text-gray-500 hover:text-[#0A4D7C] text-sm font-medium transition-colors duration-300"
+              className="text-gray-500 hover:text-black text-sm font-medium transition-colors duration-300"
             >
               Continue Learning
             </button>

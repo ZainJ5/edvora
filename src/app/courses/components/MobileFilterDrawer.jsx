@@ -53,9 +53,7 @@ const MobileFilterDrawer = ({
               </button>
             </div>
 
-            {/* Mobile Filters */}
             <div className="mt-4 px-4 h-full overflow-y-auto">
-              {/* Category filter */}
               <div className="border-b border-gray-200 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium text-gray-900">Categories</h3>
@@ -109,7 +107,6 @@ const MobileFilterDrawer = ({
                 </AnimatePresence>
               </div>
 
-              {/* Level filter */}
               <div className="border-b border-gray-200 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium text-gray-900">Level</h3>
@@ -163,7 +160,6 @@ const MobileFilterDrawer = ({
                 </AnimatePresence>
               </div>
 
-              {/* Price filter */}
               <div className="border-b border-gray-200 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-medium text-gray-900">Price Range</h3>

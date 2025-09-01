@@ -1,11 +1,15 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+// Remove this line that was causing the error
+// import { useRouter } from 'next/router';
 
 const HeroSection = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
   const initialHeightSet = useRef(false);
+  // Remove this line that was causing the error
+  // const router = useRouter();
 
   const banners = [
     {
@@ -28,8 +32,7 @@ const HeroSection = () => {
         description: 'Power up your AI, career, and life skills with the most up-to-date, expert-led learning.',
         subtext: null,
         buttons: [
-          { text: 'Try it free', primary: true },
-          { text: 'Learn AI', primary: false }
+          { text: 'Learn AI', primary: true }
         ]
       }
     },
@@ -80,6 +83,10 @@ const HeroSection = () => {
 
   const goToNextBanner = () => {
     setCurrentBanner((prev) => (prev + 1) % banners.length);
+  };
+
+  const navigateToAICourses = () => {
+    window.location.href = 'http://localhost:3000/courses?category=AI&sortBy=newest';
   };
 
   return (
@@ -195,7 +202,7 @@ const HeroSection = () => {
         }
 
         .btn-primary {
-          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          background: #0b4f8a;
           color: white;
           border: none;
           padding: 0.875rem 2rem;
@@ -204,17 +211,17 @@ const HeroSection = () => {
           font-size: 1rem;
           cursor: pointer;
           transition: all 0.3s ease;
-          margin-right: 1rem;
+          width: 100%;
           box-shadow: 
-            0 4px 14px 0 rgba(139, 92, 246, 0.3),
+            0 4px 14px 0 rgba(11, 79, 138, 0.3),
             0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
 
         .btn-primary:hover {
-          background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+          background: #0a4272;
           transform: translateY(-2px);
           box-shadow: 
-            0 6px 20px 0 rgba(139, 92, 246, 0.4),
+            0 6px 20px 0 rgba(11, 79, 138, 0.4),
             0 2px 6px 0 rgba(0, 0, 0, 0.15);
         }
 
@@ -234,8 +241,8 @@ const HeroSection = () => {
         }
 
         .btn-secondary:hover {
-          border-color: rgba(139, 92, 246, 0.8);
-          color: #8b5cf6;
+          border-color: #0b4f8a;
+          color: #0b4f8a;
           background: rgba(255, 255, 255, 0.95);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
@@ -305,11 +312,12 @@ const HeroSection = () => {
                 )}
                 
                 {banner.card.buttons && (
-                  <div className="flex flex-col sm:flex-row">
+                  <div className="flex flex-col sm:flex-row w-full">
                     {banner.card.buttons.map((button, btnIndex) => (
                       <button
                         key={btnIndex}
                         className={button.primary ? 'btn-primary' : 'btn-secondary'}
+                        onClick={navigateToAICourses}
                       >
                         {button.text}
                       </button>

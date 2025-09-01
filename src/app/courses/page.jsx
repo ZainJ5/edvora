@@ -219,9 +219,8 @@ export default function CoursesPage() {
         }}
       />
 
-      <div className="bg-gray-50 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Mobile filter drawer */}
+      <div className="bg-gray-50 text-black min-h-screen">
+        <div className="px-4 sm:px-6 lg:px-8">
           <MobileFilterDrawer 
             mobileFiltersOpen={mobileFiltersOpen}
             setMobileFiltersOpen={setMobileFiltersOpen}
@@ -277,7 +276,6 @@ export default function CoursesPage() {
 
             <section className="pt-6">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-6">
-                {/* Desktop Filters Sidebar */}
                 <FilterSidebar
                   filters={filters}
                   handleFilterChange={handleFilterChange}
@@ -291,7 +289,6 @@ export default function CoursesPage() {
                   handleSearchSubmit={handleSearchSubmit}
                 />
 
-                {/* Course Grid */}
                 <div className="lg:col-span-3">
                   {error && (
                     <motion.div 
@@ -328,7 +325,6 @@ export default function CoursesPage() {
                       {courses.length} {courses.length === 1 ? 'course' : 'courses'} found
                     </p>
                     
-                    {/* Mobile sort dropdown */}
                     <div className="lg:hidden">
                       <select
                         name="sortBy"
@@ -379,7 +375,7 @@ export default function CoursesPage() {
                               <button className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20">
                                 Previous
                               </button>
-                              <button className="relative inline-flex items-center border border-gray-300 bg-[#2c3180] px-4 py-2 text-sm font-medium text-white focus:z-20">
+                              <button className="relative inline-flex items-center border border-gray-300 bg-[#235d96] px-4 py-2 text-sm font-medium text-white focus:z-20">
                                 1
                               </button>
                               <button className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 focus:z-20">
