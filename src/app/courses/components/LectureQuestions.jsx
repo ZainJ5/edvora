@@ -161,7 +161,7 @@ const LectureQuestions = ({ courseId, lectureId }) => {
   const isInstructor = currentUser?.role === 'instructor';
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border border-[#e0e5f2]">
+    <div className="bg-white">
       <div className="flex items-center mb-6">
         <MdOutlineForum className="text-2xl text-[#314d7c] mr-3" />
         <h3 className="text-xl font-semibold text-[#314d7c]">
