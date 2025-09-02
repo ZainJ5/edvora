@@ -18,7 +18,7 @@ export async function POST(req, { params }) {
   try {
     await connectDB();
     
-    const { courseId, lectureId } = params;
+    const { courseId, lectureId } = await params;
     const quizData = await req.json();
     
     const token = req.headers.get('authorization')?.split(' ')[1];

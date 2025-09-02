@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 export async function GET(request, { params }) {
   try {
     await connectDB();
-    const courseId = params.courseId;
+    const courseId = await params.courseId;
 
     const reviews = await Review.find({ courseId }).sort({ createdAt: -1 });
     
@@ -63,7 +63,7 @@ export async function POST(request, { params }) {
     await connectDB();
 
     const { rating, comment } = await request.json();
-    const courseId = params.courseId;
+    const courseId = await params.courseId;
 
     const authorization = request.headers.get('authorization');
     if (!authorization) {

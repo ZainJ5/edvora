@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
   try {
     await connectDB();
     
-    const { courseId } = params;
+    const { courseId } = await params;
     
     const authorization = request.headers.get('authorization');
     if (!authorization) {
@@ -54,7 +54,7 @@ export async function POST(request, { params }) {
   try {
     await connectDB();
     
-    const { courseId } = params;
+    const { courseId } = await params;
     const { completedLectures, completedQuizzes, progress } = await request.json();
     
     console.log("Received progress data:", { completedLectures, completedQuizzes, progress });

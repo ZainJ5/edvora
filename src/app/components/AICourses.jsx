@@ -92,7 +92,7 @@ const AICourses = () => {
               >
                 <div className="relative h-48 w-full">
                   <Image
-                    src={course.thumbnail || '/placeholder-course.jpg'}
+                    src={course.thumbnail }
                     alt={course.title}
                     fill
                     style={{ objectFit: 'cover' }}

@@ -23,7 +23,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(request, { params }) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     const body = await request.json();
     const { paymentIntentId } = body;
     

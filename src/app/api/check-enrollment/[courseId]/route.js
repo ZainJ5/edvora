@@ -20,7 +20,7 @@ const verifyToken = (request) => {
 
 export async function GET(request, { params }) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     
     const token = request.headers.get('Authorization')?.split(' ')[1];
     

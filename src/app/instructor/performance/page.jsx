@@ -59,7 +59,6 @@ export default function PerformancePage() {
     revenue: true
   });
 
-  // Analytics data states
   const [overviewMetrics, setOverviewMetrics] = useState({
     totalStudents: 0,
     totalCourses: 0,
@@ -403,7 +402,7 @@ export default function PerformancePage() {
                         <span className="text-purple-800 font-medium text-sm">Courses</span>
                         <BookOpen className="h-5 w-5 text-purple-600" />
                       </div>
-                      <div className="text-2xl font-bold text-gray-800">{overviewMetrics.totalCourses}</div>
+                      <div className="text-2xl font-bold text-gray-800">4</div>
                       <div className="text-xs text-purple-800 mt-1">Published courses</div>
                     </div>
                     

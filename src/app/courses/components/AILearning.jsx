@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { TalkingHead } from '../../../lib/talkinghead/modules/talkinghead.mjs';
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
 export default function AILearning({ course, currentLecture }) {
   const containerRef = useRef(null);
@@ -83,6 +82,16 @@ export default function AILearning({ course, currentLecture }) {
       prepareScriptSegments();
     }
   }, [teachingScript]);
+
+  useEffect(() => {
+    if (scriptSegmentsRef.current.length > 0 && !isPlaying && !isLoading) {
+      const timer = setTimeout(() => {
+        handlePlayPause();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [scriptSegmentsRef.current.length]);
 
   const prepareScriptSegments = () => {
     const segments = teachingScript
@@ -339,10 +348,10 @@ export default function AILearning({ course, currentLecture }) {
 
   return (
     <div className="ai-learning-container">
-      <div 
-        ref={containerRef} 
-        className="avatar-container"
-      />
+      <div className="avatar-section">
+        <div className="avatar-background"></div>
+        <div ref={containerRef} className="avatar-container"></div>
+      </div>
 
       <div className="script-container">
         {scriptLoading ? (
@@ -368,36 +377,18 @@ export default function AILearning({ course, currentLecture }) {
             </div>
             
             <div className="controls">
-              <button 
-                className="control-button" 
-                onClick={handlePlayPause}
-                disabled={isLoading || !headRef.current}
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+              <button onClick={handlePlayPause} className="control-button">
+                {isPlaying ? 'Pause' : 'Play'}
               </button>
-              
-              <button 
-                className="control-button" 
-                onClick={handleRestart}
-                disabled={isLoading || currentSegment === 0}
-                aria-label="Restart"
-              >
-                <RotateCcw size={24} />
-              </button>
-              
-              <button 
-                className="control-button" 
-                onClick={toggleMute}
-                aria-label={isMuted ? "Unmute" : "Mute"}
-              >
-                {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+              <button onClick={handleRestart} className="control-button">
+                Restart
               </button>
             </div>
           </>
         ) : (
           <div className="empty-state">
-            <p>No teaching script available.</p>
+            <h3>AI Teaching Assistant</h3>
+            <p>Generate a personalized teaching experience for this lecture.</p>
             <button 
               onClick={generateTeachingScript}
               disabled={isLoading || scriptLoading}
@@ -410,6 +401,203 @@ export default function AILearning({ course, currentLecture }) {
         
         {error && <div className="error-message">{error}</div>}
       </div>
+      
+      <style jsx>{`
+        .ai-learning-container {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          min-height: 70vh;
+          background-color: #f8f9fa;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        
+        .avatar-section {
+          position: relative;
+          width: 100%;
+          height: 450px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          margin-top: -20px; /* Adjusted to move avatar upward */
+        }
+        
+        .avatar-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-image: url('/avatar-background.jpg'); 
+          background-size: contain;
+          background-position: center;
+          opacity: 1; 
+          z-index: 0;
+          pointer-events: none;
+          filter: blur(5px); /* Added blur to make avatar more prominent */
+        }
+        
+        .avatar-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          z-index: 1; 
+        }
+        
+        .script-container {
+          padding: 2rem;
+          background-color: white;
+          border-radius: 0 0 12px 12px;
+          flex: 1;
+          box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .script-display {
+          max-height: 300px;
+          overflow-y: auto;
+          padding: 1rem;
+          background-color: #f8f9fa;
+          border-radius: 8px;
+          margin-bottom: 1.5rem;
+          box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .script-segment {
+          font-size: 1.1rem;
+          line-height: 1.6;
+          margin-bottom: 0.8rem;
+          color: #343a40;
+          transition: all 0.3s ease;
+        }
+        
+        .script-segment.active {
+          color: #0066cc;
+          font-weight: 600;
+          background-color: rgba(0, 102, 204, 0.05);
+          padding: 0.5rem;
+          border-radius: 4px;
+          transform: scale(1.01);
+        }
+        
+        .script-segment.spoken {
+          color: #666;
+        }
+        
+        .progress-bar {
+          height: 6px;
+          background-color: #e9ecef;
+          border-radius: 10px;
+          margin: 1.5rem 0;
+          overflow: hidden;
+        }
+        
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #0066cc, #5e9eff);
+          transition: width 0.2s ease;
+        }
+        
+        .controls {
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          margin-top: 1rem;
+        }
+        
+        .control-button {
+          padding: 8px 16px;
+          background-color: #0066cc;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        
+        .control-button:hover {
+          background-color: #0055aa;
+        }
+        
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 3rem;
+        }
+        
+        .loading-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid rgba(0, 102, 204, 0.1);
+          border-radius: 50%;
+          border-top-color: #0066cc;
+          animation: spin 1s ease-in-out infinite;
+          margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 2.5rem;
+          background-color: #f8f9fa;
+          border-radius: 8px;
+          border: 1px dashed #ced4da;
+        }
+        
+        .empty-state h3 {
+          font-size: 1.5rem;
+          margin-bottom: 1rem;
+          color: #212529;
+        }
+        
+        .empty-state p {
+          color: #6c757d;
+          margin-bottom: 2rem;
+        }
+        
+        .generate-button {
+          background-color: #0066cc;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 0.75rem 1.5rem;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .generate-button:hover {
+          background-color: #0055aa;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .generate-button:disabled {
+          background-color: #a0c0e0;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+        
+        .error-message {
+          margin-top: 1rem;
+          padding: 0.75rem;
+          background-color: #fff5f5;
+          color: #e53e3e;
+          border-left: 4px solid #e53e3e;
+          border-radius: 4px;
+          font-size: 0.9rem;
+        }
+      `}</style>
     </div>
   );
 }

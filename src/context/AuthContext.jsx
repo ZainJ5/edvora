@@ -56,53 +56,55 @@ export const AuthProvider = ({ children }) => {
     checkUserSession();
   }, [router]);
 
-  const login = async (email, password) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+const login = async (email, password) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      
-      const base64Url = data.token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(window.atob(base64));
-      
-      const userInfo = {
-        userId: payload.userId,
-        role: payload.role
-      };
-      
-      setCurrentUser(userInfo);
-      
-      if (userInfo.role === 'instructor') {
-        router.push('/instructor/dashboard');
-      } else if (userInfo.role === 'admin') {
-        router.push('/admin');
-      } else if(userInfo.role === 'user') {
-        router.push('/user/dashboard');
-      }
-
-      return { success: true };
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
     }
-  };
+
+    localStorage.setItem('token', data.token);
+    
+    const base64Url = data.token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(window.atob(base64));
+    
+    const userInfo = {
+      userId: payload.userId,
+      name: payload.name,
+      email: payload.email,
+      role: payload.role
+    };
+    
+    setCurrentUser(userInfo);
+    
+    if (userInfo.role === 'instructor') {
+      router.push('/instructor/dashboard');
+    } else if (userInfo.role === 'admin') {
+      router.push('/admin');
+    } else if(userInfo.role === 'user') {
+      router.push('/user/dashboard');
+    }
+
+    return { success: true };
+  } catch (err) {
+    setError(err.message);
+    return { success: false, error: err.message };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const register = async (userData) => {
     setLoading(true);

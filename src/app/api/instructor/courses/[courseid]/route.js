@@ -184,7 +184,7 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1];
-    const courseId = params.courseid; 
+    const courseId = await params.courseid; 
     
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

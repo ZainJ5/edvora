@@ -530,7 +530,6 @@ const CourseLearn = () => {
   return (
     <>
       <div className="flex flex-col min-h-screen text-gray-800 bg-white">
-        {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center">
             <button 
@@ -583,7 +582,6 @@ const CourseLearn = () => {
         </div>
         
         <div className="flex">
-          {/* Mobile Sidebar */}
           {showSidebarMobile && (
             <div className="fixed inset-0 bg-black bg-opacity-60 z-30 md:hidden backdrop-blur-sm transition-all duration-300">
               <div className="absolute right-0 top-0 h-full w-4/5 max-w-xs bg-white shadow-2xl transform transition-transform duration-300">
@@ -767,7 +765,6 @@ const CourseLearn = () => {
           <div className="flex-1 pb-16">
             {currentLecture && (
               <div className="flex flex-col h-full">
-                {/* Video Container */}
                 <div className="bg-black relative shadow-lg">
                   {activeTab === 'video' && (
                     <div className="w-full aspect-video">
